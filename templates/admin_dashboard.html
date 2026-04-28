@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: "Times New Roman", serif; background: #eef2f7; color: #111827; font-size: 14px; }
+        .layout { display: flex; min-height: 100vh; }
+        .sidebar { width: 250px; background: #0f172a; color: white; padding: 20px 16px; position: fixed; height: 100vh; }
+        .sidebar h2 { margin: 0 0 22px; font-size: 23px; letter-spacing: 0.5px; }
+        .nav-btn { width: 100%; padding: 11px 12px; margin-bottom: 8px; border: none; border-radius: 9px; background: transparent; color: white; text-align: left; font-weight: bold; cursor: pointer; font-family: "Times New Roman", serif; font-size: 15px; }
+        .nav-btn:hover, .nav-btn.active { background: #2563eb; }
+        .logout { display: block; margin-top: 22px; background: #dc2626; color: white; text-align: center; padding: 10px; border-radius: 9px; text-decoration: none; font-weight: bold; }
+        .main { margin-left: 250px; padding: 22px; width: calc(100% - 250px); }
+        .topbar { background: white; padding: 18px; border-radius: 15px; box-shadow: 0 6px 18px rgba(15,23,42,0.07); margin-bottom: 16px; }
+        .topbar h1 { margin: 0; font-size: 26px; }
+        .msg { background: #dcfce7; color: #166534; padding: 12px 14px; border-radius: 10px; margin-bottom: 14px; font-weight: bold; border: 1px solid #bbf7d0; }
+        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-bottom: 16px; }
+        .stat { background: white; border-radius: 15px; padding: 17px; box-shadow: 0 6px 18px rgba(15,23,42,0.07); border: 1px solid #e5e7eb; }
+        .stat span { color: #64748b; font-weight: bold; font-size: 13px; }
+        .stat h2 { margin: 8px 0 0; font-size: 26px; }
+        .section { display: none; }
+        .section.active { display: block; }
+        .card { background: white; border-radius: 15px; padding: 18px; box-shadow: 0 6px 18px rgba(15,23,42,0.07); margin-bottom: 16px; border: 1px solid #e5e7eb; }
+        .card h2 { margin: 0 0 12px; font-size: 21px; }
+        .card h3 { margin: 0 0 10px; font-size: 17px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; }
+        input, select { width: 100%; padding: 9px 10px; border: 1px solid #cbd5e1; border-radius: 8px; margin: 6px 0 10px; font-size: 14px; font-family: "Times New Roman", serif; background: white; }
+        button.submit { background: #2563eb; color: white; border: none; padding: 9px 14px; border-radius: 8px; font-weight: bold; cursor: pointer; font-family: "Times New Roman", serif; font-size: 14px; }
+        .danger { background: #dc2626 !important; }
+        .success { background: #16a34a !important; }
+        .table-wrap { overflow-x: auto; }
+        table.compact-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+        .compact-table th, .compact-table td { padding: 7px 8px; border: 1px solid #e5e7eb; text-align: left; vertical-align: middle; }
+        .compact-table th { background: #f8fafc; font-weight: bold; color: #334155; }
+        .compact-table tr:hover { background: #f8fafc; }
+        .action-btn { display: inline-block; text-decoration: none; padding: 5px 9px; border-radius: 7px; color: white; font-size: 12px; font-weight: bold; background: #2563eb; margin-right: 4px; }
+        .hint { color: #64748b; font-size: 13px; margin: 6px 0; }
+        .status-active { color: #16a34a; font-weight: bold; }
+        .status-inactive { color: #dc2626; font-weight: bold; }
+        .section-note { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; color: #475569; margin-bottom: 14px; font-weight: bold; }
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        .employee-subsection {
+            display: none;
+        }
+
+        .employee-subsection.active {
+            display: block;
+        }
+
+        
+
+        
+
+        
+
+        .mini-form-card {
+            max-width: 720px;
+        }
+
+        @media(max-width: 900px) {
+            
+
+            
+
+            
+        }
+
+
+        /* Employee Management toolbar - final design */
+        .employee-toolbar {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 9px;
+            padding: 0;
+            margin: 14px 0 16px;
+            box-shadow: 0 4px 12px rgba(15,23,42,0.04);
+            overflow: hidden;
+        }
+
+        .toolbar-btn {
+            border: none;
+            background: white;
+            color: #0f172a;
+            font-family: "Times New Roman", serif;
+            font-weight: bold;
+            font-size: 14px;
+            padding: 12px 10px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            text-align: center;
+            min-height: 54px;
+        }
+
+        .toolbar-btn:hover {
+            background: #f8fafc;
+            color: #2563eb;
+        }
+
+        .toolbar-btn.active {
+            color: #2563eb;
+            border-bottom-color: #2563eb;
+            background: white;
+        }
+
+        .toolbar-icon {
+            font-size: 20px;
+            font-weight: bold;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        .icon-blue { color: #2563eb; }
+        .icon-green { color: #16a34a; }
+        .icon-red { color: #dc2626; }
+        .icon-orange { color: #f59e0b; }
+
+        .employee-list-card {
+            padding: 16px 18px;
+        }
+
+        .employee-list-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .employee-list-head h2 {
+            margin: 0 0 4px;
+            font-size: 22px;
+        }
+
+        .employee-list-head .hint {
+            margin: 0;
+        }
+
+        .search-box {
+            max-width: 330px;
+            margin: 0;
+            padding: 9px 11px;
+        }
+
+        .compact-table.admin-list {
+            margin-top: 6px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .compact-table.admin-list th,
+        .compact-table.admin-list td {
+            padding: 6px 8px;
+            font-size: 13px;
+        }
+
+        .section-title {
+            margin-top: 6px;
+            margin-bottom: 8px;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .section-title h2 {
+            margin: 0 0 5px;
+            font-size: 24px;
+        }
+
+        .section-title .hint {
+            margin: 0;
+        }
+
+
+
+        .custom-toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            min-width: 280px;
+            max-width: 420px;
+            background: #16a34a;
+            color: white;
+            padding: 13px 18px;
+            border-radius: 12px;
+            font-weight: bold;
+            box-shadow: 0 8px 24px rgba(15,23,42,0.22);
+            z-index: 9999;
+            animation: toastIn 0.35s ease;
+        }
+        .custom-toast.error { background: #dc2626; }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .filter-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            margin: 10px 0 8px;
+            flex-wrap: wrap;
+        }
+        .filter-row .search-box { max-width: 360px; }
+
+        @media(max-width: 850px) { .sidebar { position: relative; width: 100%; height: auto; } .layout { display: block; } .main { margin-left: 0; width: 100%; padding: 14px; } }
+
+
+        /* Premium UI upgrade */
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --bg: #f3f6fb;
+            --panel: rgba(255,255,255,0.96);
+            --text: #0f172a;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 18px 45px rgba(15, 23, 42, 0.10);
+        }
+        body {
+            font-family: Inter, Segoe UI, Arial, sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(37,99,235,0.12), transparent 28%),
+                radial-gradient(circle at top right, rgba(16,185,129,0.10), transparent 30%),
+                var(--bg);
+            color: var(--text);
+        }
+        .sidebar {
+            background: linear-gradient(180deg, #07122a 0%, #0f172a 55%, #111827 100%);
+            box-shadow: 16px 0 40px rgba(15,23,42,0.20);
+            border-right: 1px solid rgba(255,255,255,0.08);
+        }
+        .sidebar h2 {
+            font-family: Inter, Segoe UI, Arial, sans-serif;
+            font-size: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.12);
+        }
+        .nav-btn {
+            font-family: Inter, Segoe UI, Arial, sans-serif;
+            border-radius: 12px;
+            transition: all .2s ease;
+            color: #dbeafe;
+        }
+        .nav-btn:hover, .nav-btn.active {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            transform: translateX(4px);
+            box-shadow: 0 10px 22px rgba(37,99,235,0.25);
+        }
+        .logout {
+            border-radius: 12px;
+            box-shadow: 0 10px 24px rgba(220,38,38,0.22);
+        }
+        .main { padding: 26px; }
+        .topbar {
+            background: linear-gradient(135deg, rgba(255,255,255,0.96), rgba(248,250,252,0.92));
+            border: 1px solid rgba(226,232,240,0.9);
+            box-shadow: var(--shadow);
+            border-radius: 20px;
+        }
+        .topbar h1 {
+            font-family: Inter, Segoe UI, Arial, sans-serif;
+            font-size: 28px;
+            letter-spacing: -0.5px;
+        }
+        .card, .stat {
+            background: var(--panel);
+            border: 1px solid rgba(226,232,240,0.9);
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            transition: transform .18s ease, box-shadow .18s ease;
+        }
+        .card:hover, .stat:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 22px 55px rgba(15,23,42,0.13);
+        }
+        .stat h2 { font-size: 30px; letter-spacing: -0.6px; }
+        input, select {
+            font-family: Inter, Segoe UI, Arial, sans-serif;
+            border-radius: 12px;
+            border-color: #dbe3ef;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(37,99,235,0.12);
+        }
+        button.submit, .action-btn {
+            font-family: Inter, Segoe UI, Arial, sans-serif;
+            border-radius: 11px;
+            transition: all .18s ease;
+        }
+        button.submit:hover, .action-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 20px rgba(37,99,235,0.18);
+        }
+        .compact-table th {
+            background: #eef4ff;
+            color: #1e3a8a;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: .4px;
+        }
+        .compact-table tr:hover { background: #f8fbff; }
+        .employee-toolbar {
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+        }
+        .toolbar-btn {
+            font-family: Inter, Segoe UI, Arial, sans-serif;
+            transition: all .18s ease;
+        }
+        .toolbar-btn.active {
+            background: linear-gradient(180deg, #eff6ff, #ffffff);
+        }
+        .backup-card {
+            background: linear-gradient(135deg, #eff6ff, #ffffff);
+            border: 1px solid #bfdbfe;
+        }
+        .backup-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        .backup-actions .submit, .backup-actions .action-btn {
+            width: auto;
+            margin-top: 0;
+            padding: 10px 14px;
+        }
+        .badge-soft {
+            display: inline-block;
+            padding: 5px 9px;
+            border-radius: 999px;
+            background: #dcfce7;
+            color: #166534;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .brand-logo-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 22px;
+        }
+        .brand-logo {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            object-fit: contain;
+            background: white;
+            padding: 5px;
+        }
+        .brand-title {
+            font-size: 19px;
+            font-weight: 900;
+            line-height: 1.1;
+        }
+        .topbar-company {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .topbar-company img {
+            width: 46px;
+            height: 46px;
+            border-radius: 12px;
+            object-fit: contain;
+            background: #f8fafc;
+            padding: 5px;
+            border: 1px solid #e2e8f0;
+        }
+
+    </style>
+</head>
+<body>
+<div class="layout">
+    <div class="sidebar">
+        <div class="brand-logo-box">
+            {% if company_settings.logo_url %}
+                <img class="brand-logo" src="{{ company_settings.logo_url }}" alt="Company Logo">
+            {% endif %}
+            <div class="brand-title">{{ company_settings.company_name }}</div>
+        </div>
+        <button class="nav-btn" onclick="showTab('dashboard', this)">Dashboard</button>
+        <button class="nav-btn" onclick="showTab('employee_entry', this)">New Employee Entry</button>
+        <button class="nav-btn" onclick="showTab('salary_upload', this)">Salary File Upload</button>
+        <button class="nav-btn" onclick="showTab('settings', this)">Settings</button>
+        <a class="logout" href="/admin/logout" onclick="return confirm('Logout admin?')">Logout</a>
+    </div>
+
+    <div class="main">
+        <div class="topbar">
+            <div class="topbar-company">
+                {% if company_settings.logo_url %}
+                    <img src="{{ company_settings.logo_url }}" alt="Company Logo">
+                {% endif %}
+                <div>
+                    <h1>{{ company_settings.company_name }} - Admin Dashboard</h1>
+                    <p class="hint">Premium control panel for employees, salary files, backups, and system settings.</p>
+                </div>
+            </div>
+        </div>
+
+        {% if message %}
+        <div id="toast" class="custom-toast {% if 'failed' in message|lower or 'error' in message|lower or 'invalid' in message|lower or 'please' in message|lower or 'not found' in message|lower %}error{% endif %}">
+            {{ message }}
+        </div>
+        {% endif %}
+
+        <div id="dashboard" class="section">
+            <div class="cards">
+                <div class="stat"><span>Total Employees</span><h2>{{ total_employees }}</h2></div>
+                <div class="stat"><span>Total Active Employees</span><h2>{{ total_active }}</h2></div>
+                <div class="stat"><span>Total Inactive Employees</span><h2>{{ total_inactive }}</h2></div>
+                <div class="stat"><span>System Status</span><h2>Active</h2></div>
+                <div class="stat"><span>Latest Backup</span><h2 style="font-size:18px;">{{ backup_info.created_at }}</h2></div>
+            </div>
+
+            <div class="card">
+                <h2>Employee Status List</h2>
+                <div class="table-wrap">
+                    <table class="compact-table">
+                        <tr><th>Sr No</th><th>Employee ID</th><th>Employee Name</th><th>Email ID</th><th>Mobile No</th><th>Status</th></tr>
+                        {% for emp in employees %}
+                        <tr>
+                            <td>{{ loop.index }}</td><td>{{ emp.employee_id }}</td><td>{{ emp.name }}</td><td>{{ emp.email }}</td><td>{{ emp.mobile }}</td>
+                            <td>{% if emp.status == "Inactive" or emp.status == "Blocked" %}<span class="status-inactive">Inactive</span>{% else %}<span class="status-active">Active</span>{% endif %}</td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="employee_entry" class="section">
+
+            <div class="cards">
+                <div class="stat"><span>Total Employees</span><h2>{{ total_employees }}</h2></div>
+                <div class="stat"><span>Total Active Employees</span><h2>{{ total_active }}</h2></div>
+                <div class="stat"><span>Total Inactive Employees</span><h2>{{ total_inactive }}</h2></div>
+                <div class="stat"><span>System Status</span><h2>Active</h2></div>
+            </div>
+
+            <div class="section-title">
+                <h2>Employee Management</h2>
+                <p class="hint">Manage all employee records and related actions.</p>
+            </div>
+
+
+            <div class="employee-toolbar">
+                <button type="button" class="toolbar-btn" onclick="showEmployeeSubTab('emp_add', this)">
+                    <span class="toolbar-icon icon-blue">👥</span>Add Employee
+                </button>
+                <button type="button" class="toolbar-btn" onclick="showEmployeeSubTab('emp_excel', this)">
+                    <span class="toolbar-icon icon-green">▣</span>Upload Employee List<br>By Excel
+                </button>
+                <button type="button" class="toolbar-btn" onclick="showEmployeeSubTab('emp_delete', this)">
+                    <span class="toolbar-icon icon-red">▥</span>Delete Employee
+                </button>
+                <button type="button" class="toolbar-btn" onclick="showEmployeeSubTab('emp_reset', this)">
+                    <span class="toolbar-icon icon-orange">🔑</span>Reset Employee Password
+                </button>
+                <button type="button" class="toolbar-btn active" onclick="showEmployeeSubTab('emp_list', this)">
+                    <span class="toolbar-icon icon-blue">☷</span>Employee List
+                </button>
+            </div>
+
+            <div id="emp_add" class="employee-subsection">
+                <div class="card mini-form-card">
+                    <h3>Add Employee</h3>
+                    <form method="POST">
+                        <input type="hidden" name="action" value="add_employee">
+                        <input type="hidden" name="tab" value="employee_entry">
+
+                        <input type="text" name="name" placeholder="Employee Name" required>
+                        <input type="text" name="employee_id" placeholder="Employee ID">
+                        <input type="email" name="email" placeholder="Email ID" required>
+                        <input type="text" name="mobile" placeholder="Mobile No">
+                        <input type="text" name="password" placeholder="Password" required>
+
+                        <button class="submit" type="submit">Add Employee</button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="emp_excel" class="employee-subsection">
+                <div class="card mini-form-card">
+                    <h3>Upload Employee List By Excel</h3>
+                    <form method="POST" enctype="multipart/form-data">
+                        <input type="hidden" name="action" value="upload_employee_excel">
+                        <input type="hidden" name="tab" value="employee_entry">
+
+                        <input type="file" name="employee_excel" accept=".xlsx" required>
+
+                        <button class="submit" type="submit">Upload Excel</button>
+                    </form>
+                    <p class="hint"><b>Required columns:</b> Full Name | Employee ID | Mobile Number | Email ID | Password</p>
+                </div>
+            </div>
+
+            <div id="emp_delete" class="employee-subsection">
+                <div class="card mini-form-card">
+                    <h3>Delete Employee</h3>
+                    <form method="POST">
+                        <input type="hidden" name="action" value="delete_employee">
+                        <input type="hidden" name="tab" value="employee_entry">
+
+                        <select name="employee_email" required>
+                            <option value="">Select Employee</option>
+                            {% for emp in employees %}
+                                <option value="{{ emp.email }}">{{ emp.name }} ({{ emp.email }})</option>
+                            {% endfor %}
+                        </select>
+
+                        <button class="submit danger" type="submit" onclick="return confirmDelete('employee')">
+                            Delete Employee
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="emp_reset" class="employee-subsection">
+                <div class="card mini-form-card">
+                    <h3>Reset Employee Password</h3>
+                    <form method="POST">
+                        <input type="hidden" name="action" value="change_employee_password">
+                        <input type="hidden" name="tab" value="employee_entry">
+
+                        <select name="employee_email" required>
+                            <option value="">Select Employee</option>
+                            {% for emp in employees %}
+                                <option value="{{ emp.email }}">{{ emp.name }} ({{ emp.email }})</option>
+                            {% endfor %}
+                        </select>
+
+                        <input type="text" name="new_password" placeholder="New Password" required>
+
+                        <button class="submit" type="submit">Update Password</button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="emp_list" class="employee-subsection active">
+                <div class="card employee-list-card">
+                    <div class="employee-list-head">
+                        <div>
+                            <h2>Employee List</h2>
+                            <p class="hint">List of all registered employees.</p>
+                        </div>
+                        <input id="employeeSearch" class="search-box" type="text" placeholder="Search by name, email or mobile...">
+                    </div>
+
+                    <div class="table-wrap">
+                        <table class="compact-table admin-list" id="employeeTable">
+                            <tr>
+                                <th>Employee ID</th>
+                                <th>Employee Name</th>
+                                <th>Email ID</th>
+                                <th>Mobile No</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+
+                            {% for emp in employees %}
+                            <tr>
+                                <td>{{ emp.employee_id }}</td>
+                                <td>{{ emp.name }}</td>
+                                <td>{{ emp.email }}</td>
+                                <td>{{ emp.mobile }}</td>
+                                <td>
+                                    {% if emp.status == "Inactive" or emp.status == "Blocked" %}
+                                        <span class="status-inactive">Inactive</span>
+                                    {% else %}
+                                        <span class="status-active">Active</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a class="action-btn" href="#settings" onclick="showTab('settings')">View</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div id="salary_upload" class="section">
+            <div class="section-note">Salary File Upload: Upload salary slips, bulk upload salary slips, upload salary certificates, view files, and delete salary files.</div>
+            <div class="grid">
+                <div class="card">
+                    <h3>Upload Salary Slip</h3>
+                    <form method="POST" enctype="multipart/form-data">
+                        <input type="hidden" name="action" value="upload_slip"><input type="hidden" name="tab" value="salary_upload">
+                        <select name="employee_email" required><option value="">Select Employee</option>{% for emp in employees %}<option value="{{ emp.email }}">{{ emp.name }} ({{ emp.email }})</option>{% endfor %}</select>
+                        <input type="text" name="month" placeholder="Month (Example: April 2025)" required>
+                        <input type="file" name="pdf_file" accept="application/pdf" required>
+                        <button class="submit" type="submit">Upload Salary Slip</button>
+                    </form>
+                </div>
+                <div class="card">
+                    <h3>Bulk Upload Salary Slip</h3>
+                    <form method="POST" enctype="multipart/form-data">
+                        <input type="hidden" name="action" value="bulk_upload_slip"><input type="hidden" name="tab" value="salary_upload">
+                        <input type="file" name="bulk_salary_file" accept=".zip" required>
+                        <button class="submit" type="submit">Bulk Upload</button>
+                    </form>
+                    <p class="hint"><b>ZIP format:</b> Put PDF files inside ZIP. Each PDF file name must contain employee email, example: employee@email.com_April_2025.pdf</p>
+                </div>
+                <div class="card">
+                    <h3>Upload Salary Certificate</h3>
+                    <form method="POST" enctype="multipart/form-data">
+                        <input type="hidden" name="action" value="upload_certificate"><input type="hidden" name="tab" value="salary_upload">
+                        <select name="employee_email" required><option value="">Select Employee</option>{% for emp in employees %}<option value="{{ emp.email }}">{{ emp.name }} ({{ emp.email }})</option>{% endfor %}</select>
+                        <input type="text" name="financial_year" placeholder="Financial Year (Example: FY 2025-26)" required>
+                        <input type="file" name="certificate_file" accept="application/pdf" required>
+                        <button class="submit" type="submit">Upload Certificate</button>
+                    </form>
+                </div>
+            </div>
+            <div class="card">
+                <h2>List of Salary Slip / Salary Certificate</h2>
+                <div class="filter-row">
+                    <p class="hint">Filter salary slips and certificates by selected employee.</p>
+                    <select id="salaryEmployeeFilter" class="search-box">
+                        <option value="">All Employees</option>
+                        {% for emp in employees %}
+                            <option value="{{ emp.email }}">{{ emp.name }} ({{ emp.email }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <h3>Salary Slips</h3>
+                <div class="table-wrap">
+                    <table class="compact-table">
+                        <tr><th>Sr No</th><th>Employee Email</th><th>Month</th><th>File</th><th>Action</th></tr>
+                        {% for slip in slips %}
+                        <tr class="salary-row" data-email="{{ slip.employee_email }}">
+                            <td>{{ loop.index }}</td>
+                            <td>{{ slip.employee_email }}</td>
+                            <td>{{ slip.month }}</td>
+                            <td>{{ slip.display_name }}</td>
+                            <td><a class="action-btn" href="/view/{{ slip.id }}" target="_blank">Open</a></td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+
+                <h3 style="margin-top:16px;">Salary Certificates</h3>
+                <div class="table-wrap">
+                    <table class="compact-table">
+                        <tr><th>Sr No</th><th>Employee Email</th><th>Financial Year</th><th>File</th><th>Action</th></tr>
+                        {% for cert in certificates %}
+                        <tr class="certificate-row" data-email="{{ cert.employee_email }}">
+                            <td>{{ loop.index }}</td>
+                            <td>{{ cert.employee_email }}</td>
+                            <td>{{ cert.financial_year }}</td>
+                            <td>{{ cert.display_name }}</td>
+                            <td><a class="action-btn" href="/view_certificate/{{ cert.id }}" target="_blank">Open</a></td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+            <div class="grid">
+                <div class="card"><h3>Delete Salary Slip</h3><form method="POST"><input type="hidden" name="action" value="delete_slip"><input type="hidden" name="tab" value="salary_upload"><select name="slip_id" required><option value="">Select Salary Slip</option>{% for slip in slips %}<option value="{{ slip.id }}">{{ slip.employee_email }} - {{ slip.month }} - {{ slip.display_name }}</option>{% endfor %}</select><button class="submit danger" type="submit" onclick="return confirmDelete('slip')">Delete Salary Slip</button></form></div>
+                <div class="card"><h3>Delete Salary Certificate</h3><form method="POST"><input type="hidden" name="action" value="delete_certificate"><input type="hidden" name="tab" value="salary_upload"><select name="certificate_id" required><option value="">Select Salary Certificate</option>{% for cert in certificates %}<option value="{{ cert.id }}">{{ cert.employee_email }} - {{ cert.financial_year }} - {{ cert.display_name }}</option>{% endfor %}</select><button class="submit danger" type="submit" onclick="return confirmDelete('certificate')">Delete Salary Certificate</button></form></div>
+            </div>
+        </div>
+
+        <div id="settings" class="section">
+            <div class="grid">
+                <div class="card backup-card">
+                    <h3>Automatic Backup System</h3>
+                    <p class="hint"><span class="badge-soft">Active</span></p>
+                    <p class="hint">A local backup is created automatically once per day when admin dashboard opens.</p>
+                    <p class="hint"><b>Latest Backup:</b> {{ backup_info.created_at }}</p>
+                    <p class="hint"><b>File:</b> {{ backup_info.filename }}</p>
+                    <div class="backup-actions">
+                        <a class="action-btn" href="/admin/backup/download">Download Backup Now</a>
+                        <form method="POST" style="margin:0;">
+                            <input type="hidden" name="action" value="manual_backup">
+                            <input type="hidden" name="tab" value="settings">
+                            <button class="submit success" type="submit">Create Backup</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="card"><h3>Change Company Name And Logo</h3><p class="hint"><b>Current:</b> {{ company_settings.company_name }}</p>{% if company_settings.logo_url %}<p class="hint"><img src="{{ company_settings.logo_url }}" style="max-height:45px;max-width:160px;border-radius:8px;background:#f8fafc;padding:5px;"></p>{% endif %}<form method="POST" enctype="multipart/form-data"><input type="hidden" name="action" value="change_company"><input type="hidden" name="tab" value="settings"><input type="text" name="company_name" placeholder="Company Name" value="{{ company_settings.company_name }}"><input type="file" name="company_logo" accept="image/*"><button class="submit" type="submit">Save Company Details</button></form></div>
+                <div class="card"><h3>Change Email For Admin</h3><form method="POST"><input type="hidden" name="action" value="change_admin_email"><input type="hidden" name="tab" value="settings"><input type="email" name="new_admin_email" placeholder="New Admin Email"><button class="submit" type="submit">Update Admin Email</button></form></div>
+                <div class="card"><h3>Change Password For Admin</h3><form method="POST"><input type="hidden" name="action" value="change_admin_password"><input type="hidden" name="tab" value="settings"><input type="password" name="current_admin_password" placeholder="Current Password"><input type="password" name="new_admin_password" placeholder="New Password"><input type="password" name="confirm_admin_password" placeholder="Confirm Password"><button class="submit" type="submit">Update Admin Password</button></form></div>
+                <div class="card"><h3>Block Employee To Access Portal</h3><p class="hint">Requires <b>status</b> column in Supabase employees table. Run the included SQL once if this option shows an error.</p><form method="POST"><input type="hidden" name="action" value="block_employee"><input type="hidden" name="tab" value="settings"><select name="employee_email" required><option value="">Select Employee</option>{% for emp in employees %}<option value="{{ emp.email }}">{{ emp.name }} ({{ emp.email }})</option>{% endfor %}</select><button class="submit danger" type="submit" onclick="return confirm('Block this employee from accessing the portal?')">Block Employee</button></form><form method="POST" style="margin-top:10px;"><input type="hidden" name="action" value="unblock_employee"><input type="hidden" name="tab" value="settings"><select name="employee_email" required><option value="">Select Employee</option>{% for emp in employees %}<option value="{{ emp.email }}">{{ emp.name }} ({{ emp.email }})</option>{% endfor %}</select><button class="submit success" type="submit">Unblock Employee</button></form></div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+function showTab(tabId, btn = null) {
+    const sections = document.querySelectorAll('.section');
+    const buttons = document.querySelectorAll('.nav-btn');
+    sections.forEach(section => section.classList.remove('active'));
+    buttons.forEach(button => button.classList.remove('active'));
+    const selectedSection = document.getElementById(tabId);
+    if (selectedSection) selectedSection.classList.add('active');
+    if (btn) btn.classList.add('active');
+    else { const targetBtn = document.querySelector(`[onclick*="${tabId}"]`); if (targetBtn) targetBtn.classList.add('active'); }
+}
+
+function showEmployeeSubTab(tabId, btn = null) {
+    const subsections = document.querySelectorAll('.employee-subsection');
+    const buttons = document.querySelectorAll('.toolbar-btn');
+
+    subsections.forEach(section => section.classList.remove('active'));
+    buttons.forEach(button => button.classList.remove('active'));
+
+    const selected = document.getElementById(tabId);
+    if (selected) selected.classList.add('active');
+
+    if (btn) btn.classList.add('active');
+}
+
+function confirmDelete(type) {
+    if (type === 'employee') {
+        return confirm('Delete selected employee and all their salary files? This action cannot be undone.');
+    }
+    if (type === 'slip') {
+        return confirm('Delete selected salary slip?');
+    }
+    if (type === 'certificate') {
+        return confirm('Delete selected salary certificate?');
+    }
+    return confirm('Are you sure?');
+}
+
+function setupEmployeeSearch() {
+    const search = document.getElementById('employeeSearch');
+    const table = document.getElementById('employeeTable');
+    if (!search || !table) return;
+
+    search.addEventListener('input', function () {
+        const filter = this.value.toLowerCase().trim();
+        const rows = table.querySelectorAll('tr');
+
+        rows.forEach((row, index) => {
+            if (index === 0) return;
+            const text = row.innerText.toLowerCase();
+            row.style.display = text.includes(filter) ? '' : 'none';
+        });
+    });
+}
+
+function setupSalaryEmployeeFilter() {
+    const filter = document.getElementById('salaryEmployeeFilter');
+    if (!filter) return;
+
+    filter.addEventListener('change', function () {
+        const selectedEmail = this.value;
+        document.querySelectorAll('.salary-row, .certificate-row').forEach(row => {
+            const rowEmail = row.getAttribute('data-email');
+            row.style.display = (!selectedEmail || rowEmail === selectedEmail) ? '' : 'none';
+        });
+    });
+}
+
+function setupToast() {
+    const toast = document.getElementById('toast');
+    if (!toast) return;
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-10px)';
+        setTimeout(() => toast.remove(), 350);
+    }, 3000);
+}
+
+window.onload = function() {
+    showTab("{{ active_tab }}");
+    setupEmployeeSearch();
+    setupSalaryEmployeeFilter();
+    setupToast();
+}
+</script>
+</body>
+</html>

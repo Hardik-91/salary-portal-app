@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Employee Login</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial;
+            background: linear-gradient(to right, #1e293b, #334155);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .login-box {
+            background: #fff;
+            padding: 40px;
+            border-radius: 12px;
+            width: 350px;
+            text-align: center;
+        }
+
+        h2 { margin-bottom: 10px; }
+        p { color: gray; margin-bottom: 20px; }
+
+        label {
+            display: block;
+            text-align: left;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+
+        .options {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            align-items: center;
+        }
+
+        .options a {
+            color: #2563eb;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        button {
+            margin-top: 20px;
+            width: 100%;
+            padding: 12px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .error {
+            background: #fee2e2;
+            color: #b91c1c;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-box">
+    <h2>Employee Salary Portal</h2>
+    <p>Please login to continue</p>
+
+    {% if message %}
+        <div class="error">{{ message }}</div>
+    {% endif %}
+
+    <form method="POST">
+        <label>Email</label>
+        <input type="email" name="email" required>
+
+        <label>Password</label>
+        <input type="password" name="password" required>
+
+        <div class="options">
+            <label>
+                <input type="checkbox" name="remember" style="width:auto;"> Remember Me
+            </label>
+            <a href="/forgot-password">Forgot Password?</a>
+        </div>
+
+        <button type="submit">Login</button>
+    </form>
+
+    <p style="margin-top:15px;">
+        <a href="/admin">Admin Login</a>
+    </p>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,8 @@
+flask
+gunicorn
+werkzeug
+supabase
+python-dotenv
+requests
+pandas
+openpyxl

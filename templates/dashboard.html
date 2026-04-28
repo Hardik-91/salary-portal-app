@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Salary Portal - Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Times New Roman", Times, serif;
+            background: #eef2f7;
+            color: #111827;
+            font-size: 13px;
+        }
+
+        .topbar {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: white;
+            padding: 16px 24px;
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.22);
+        }
+
+        .topbar-inner {
+            max-width: 1180px;
+            margin: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 22px;
+            letter-spacing: 0.4px;
+            font-family: "Copperplate Gothic Bold", "Copperplate Gothic Light", "Times New Roman", serif;
+        }
+
+        .brand p {
+            margin: 4px 0 0;
+            color: #cbd5e1;
+            font-size: 13px;
+        }
+
+        .logout {
+            background: #ef4444;
+            color: white;
+            text-decoration: none;
+            padding: 9px 15px;
+            border-radius: 9px;
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+        .page {
+            max-width: 1180px;
+            margin: 20px auto;
+            padding: 0 14px;
+        }
+
+        .alert {
+            background: #dcfce7;
+            color: #166534;
+            padding: 11px 14px;
+            border-radius: 10px;
+            margin-bottom: 14px;
+            font-weight: 700;
+            border: 1px solid #bbf7d0;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 330px 1fr;
+            gap: 16px;
+            align-items: start;
+        }
+
+        .card {
+            background: white;
+            border-radius: 14px;
+            padding: 18px;
+            box-shadow: 0 8px 22px rgba(15, 23, 42, 0.07);
+            border: 1px solid #e5e7eb;
+            margin-bottom: 16px;
+        }
+
+        .card h2 {
+            margin: 0 0 14px;
+            font-size: 18px;
+            color: #0f172a;
+            font-family: "Copperplate Gothic Bold", "Copperplate Gothic Light", "Times New Roman", serif;
+            letter-spacing: 0.5px;
+        }
+
+        .small-text {
+            margin-top: -8px;
+            margin-bottom: 14px;
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .profile-row {
+            padding: 9px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .profile-row:last-child {
+            border-bottom: none;
+        }
+
+        .profile-label {
+            color: #64748b;
+            font-size: 11px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .profile-value {
+            font-size: 13px;
+            font-weight: 700;
+            word-break: break-word;
+        }
+
+        .status-active {
+            color: #16a34a;
+        }
+
+        label {
+            display: block;
+            font-weight: 700;
+            margin: 10px 0 5px;
+            color: #334155;
+            font-size: 12px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 9px 11px;
+            border-radius: 9px;
+            border: 1px solid #cbd5e1;
+            font-size: 13px;
+            outline: none;
+            background: white;
+        }
+
+        input:focus, select:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.10);
+        }
+
+        button {
+            margin-top: 12px;
+            width: 100%;
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 9px;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .filter-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 14px;
+            border-radius: 13px;
+            margin-bottom: 14px;
+        }
+
+        .period-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .slip-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 13px;
+            margin-top: 14px;
+        }
+
+        .slip-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 13px;
+            padding: 14px;
+        }
+
+        .slip-month {
+            font-size: 15px;
+            font-weight: 800;
+            margin-bottom: 7px;
+            color: #0f172a;
+        }
+
+        .slip-file {
+            color: #64748b;
+            font-size: 12px;
+            word-break: break-word;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            text-decoration: none;
+            color: white;
+            padding: 6px 10px;
+            border-radius: 7px;
+            font-weight: 800;
+            display: inline-block;
+            font-size: 12px;
+        }
+
+        .view {
+            background: #2563eb;
+        }
+
+        .download {
+            background: #16a34a;
+        }
+
+
+        .table-wrap {
+            width: 100%;
+            overflow-x: auto;
+            margin-top: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            background: white;
+        }
+
+        .compact-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .compact-table th {
+            background: #f1f5f9;
+            color: #0f172a;
+            text-align: left;
+            padding: 8px 10px;
+            border-bottom: 1px solid #e2e8f0;
+            font-weight: 800;
+            font-family: "Copperplate Gothic Bold", "Copperplate Gothic Light", "Times New Roman", serif;
+            letter-spacing: 0.3px;
+        }
+
+        .compact-table td {
+            padding: 7px 10px;
+            border-bottom: 1px solid #e5e7eb;
+            vertical-align: middle;
+        }
+
+        .compact-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .compact-table .action-cell {
+            white-space: nowrap;
+        }
+
+        .empty {
+            background: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            padding: 18px;
+            border-radius: 13px;
+            text-align: center;
+            color: #64748b;
+            font-weight: 700;
+            margin-top: 14px;
+            font-size: 12px;
+        }
+
+        .info-box {
+            background: #fff7ed;
+            color: #9a3412;
+            border: 1px solid #fed7aa;
+            border-radius: 13px;
+            padding: 13px;
+            font-weight: 700;
+            margin-top: 14px;
+            font-size: 12px;
+        }
+
+        @media (max-width: 900px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .topbar-inner {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .period-row {
+                grid-template-columns: 1fr;
+            }
+        }
+        .brand-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .company-logo {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            object-fit: contain;
+            background: white;
+            padding: 5px;
+        }
+
+    </style>
+
+    <script>
+        function toggleSpecificPeriod() {
+            const periodType = document.getElementById("period_type").value;
+            const specificBox = document.getElementById("specific_period_box");
+
+            if (periodType === "specific") {
+                specificBox.style.display = "grid";
+            } else {
+                specificBox.style.display = "none";
+            }
+        }
+    </script>
+</head>
+
+<body>
+
+<div class="topbar">
+    <div class="topbar-inner">
+        <div class="brand-wrap">
+            {% if company_settings.logo_url %}
+                <img class="company-logo" src="{{ company_settings.logo_url }}" alt="Company Logo">
+            {% endif %}
+            <div class="brand">
+                <h1>{{ company_settings.company_name }}</h1>
+                <p>Welcome, {{ name }}</p>
+            </div>
+        </div>
+
+        <a href="/logout" class="logout" onclick="return confirm('Are you sure you want to logout?')">Logout</a>
+    </div>
+</div>
+
+<div class="page">
+
+    {% if message %}
+        <div class="alert">{{ message }}</div>
+    {% endif %}
+
+    <div class="layout">
+
+        <!-- LEFT SIDE -->
+        <div>
+
+            <div class="card">
+                <h2>Employee Information</h2>
+
+                <div class="profile-row">
+                    <div class="profile-label">Employee ID</div>
+                    <div class="profile-value">{{ employee_id }}</div>
+                </div>
+
+                <div class="profile-row">
+                    <div class="profile-label">Employee Name</div>
+                    <div class="profile-value">{{ name }}</div>
+                </div>
+
+                <div class="profile-row">
+                    <div class="profile-label">Email ID</div>
+                    <div class="profile-value">{{ email }}</div>
+                </div>
+
+                <div class="profile-row">
+                    <div class="profile-label">Mobile No</div>
+                    <div class="profile-value">{{ mobile }}</div>
+                </div>
+
+                <div class="profile-row">
+                    <div class="profile-label">Account Status</div>
+                    <div class="profile-value status-active">Active</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Change Password</h2>
+
+                <form method="POST" action="/dashboard">
+                    <input type="hidden" name="action" value="change_own_password">
+
+                    <label>Current Password</label>
+                    <input type="password" name="current_password" required>
+
+                    <label>New Password</label>
+                    <input type="password" name="new_password" required>
+
+                    <label>Re-enter Password</label>
+                    <input type="password" name="confirm_password" required>
+
+                    <button type="submit">Update Password</button>
+                </form>
+            </div>
+
+        </div>
+
+        <!-- RIGHT SIDE -->
+        <div>
+
+            <div class="card">
+                <h2>SALARY SLIP</h2>
+                <div class="small-text">Select period to view or download Salary Slip.</div>
+
+                <form method="GET" action="/dashboard" class="filter-box">
+                    <label>Select Period</label>
+
+                    <select name="period_type" id="period_type" onchange="toggleSpecificPeriod()">
+                        <option value="current" {% if period_type == "current" %}selected{% endif %}>Current Financial Year</option>
+                        <option value="previous" {% if period_type == "previous" %}selected{% endif %}>Previous Financial Year</option>
+                        <option value="specific" {% if period_type == "specific" %}selected{% endif %}>Specific Period</option>
+                    </select>
+
+                    <div class="period-row" id="specific_period_box" {% if period_type != "specific" %}style="display:none;"{% endif %}>
+                        <div>
+                            <label>From Month</label>
+                            <select name="from_month">
+                                <option value="">Select Month</option>
+                                <option value="January" {% if from_month == "January" %}selected{% endif %}>January</option>
+                                <option value="February" {% if from_month == "February" %}selected{% endif %}>February</option>
+                                <option value="March" {% if from_month == "March" %}selected{% endif %}>March</option>
+                                <option value="April" {% if from_month == "April" %}selected{% endif %}>April</option>
+                                <option value="May" {% if from_month == "May" %}selected{% endif %}>May</option>
+                                <option value="June" {% if from_month == "June" %}selected{% endif %}>June</option>
+                                <option value="July" {% if from_month == "July" %}selected{% endif %}>July</option>
+                                <option value="August" {% if from_month == "August" %}selected{% endif %}>August</option>
+                                <option value="September" {% if from_month == "September" %}selected{% endif %}>September</option>
+                                <option value="October" {% if from_month == "October" %}selected{% endif %}>October</option>
+                                <option value="November" {% if from_month == "November" %}selected{% endif %}>November</option>
+                                <option value="December" {% if from_month == "December" %}selected{% endif %}>December</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label>From Year</label>
+                            <select name="from_year">
+                                <option value="">Select Year</option>
+                                {% for y in years %}
+                                    <option value="{{ y }}" {% if from_year == y|string %}selected{% endif %}>{{ y }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label>To Month</label>
+                            <select name="to_month">
+                                <option value="">Select Month</option>
+                                <option value="January" {% if to_month == "January" %}selected{% endif %}>January</option>
+                                <option value="February" {% if to_month == "February" %}selected{% endif %}>February</option>
+                                <option value="March" {% if to_month == "March" %}selected{% endif %}>March</option>
+                                <option value="April" {% if to_month == "April" %}selected{% endif %}>April</option>
+                                <option value="May" {% if to_month == "May" %}selected{% endif %}>May</option>
+                                <option value="June" {% if to_month == "June" %}selected{% endif %}>June</option>
+                                <option value="July" {% if to_month == "July" %}selected{% endif %}>July</option>
+                                <option value="August" {% if to_month == "August" %}selected{% endif %}>August</option>
+                                <option value="September" {% if to_month == "September" %}selected{% endif %}>September</option>
+                                <option value="October" {% if to_month == "October" %}selected{% endif %}>October</option>
+                                <option value="November" {% if to_month == "November" %}selected{% endif %}>November</option>
+                                <option value="December" {% if to_month == "December" %}selected{% endif %}>December</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label>To Year</label>
+                            <select name="to_year">
+                                <option value="">Select Year</option>
+                                {% for y in years %}
+                                    <option value="{{ y }}" {% if to_year == y|string %}selected{% endif %}>{{ y }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit">Show Salary Slips</button>
+                </form>
+
+                {% if slips %}
+                    <div class="table-wrap">
+                        <table class="compact-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:70px;">Sr No</th>
+                                    <th style="width:180px;">Month</th>
+                                    <th>File Name</th>
+                                    <th style="width:190px;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for slip in slips %}
+                                    <tr>
+                                        <td>{{ loop.index }}</td>
+                                        <td><strong>{{ slip.month }}</strong></td>
+                                        <td>{{ slip.display_name }}</td>
+                                        <td class="action-cell">
+                                            <a class="btn view" href="/view/{{ slip.id }}" target="_blank">View PDF</a>
+                                            <a class="btn download" href="/download/{{ slip.id }}">Download</a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="empty">No salary slips found for selected period.</div>
+                {% endif %}
+            </div>
+
+            <div class="card">
+                <h2>SALARY CERTIFICATE</h2>
+
+                <form method="GET" action="/dashboard" class="filter-box">
+                    <label>Select Financial Year</label>
+
+                    <select name="certificate_fy">
+                        <option value="">Select Financial Year</option>
+                        {% for fy in financial_years %}
+                            <option value="{{ fy }}" {% if certificate_fy == fy %}selected{% endif %}>
+                                {{ fy }}
+                            </option>
+                        {% endfor %}
+                    </select>
+
+                    <button type="submit">Show Salary Certificate</button>
+                </form>
+
+                {% if salary_certificate %}
+                    <div class="table-wrap">
+                        <table class="compact-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:70px;">Sr No</th>
+                                    <th style="width:190px;">Financial Year</th>
+                                    <th>File Name</th>
+                                    <th style="width:190px;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td><strong>{{ certificate_fy }}</strong></td>
+                                    <td>{{ salary_certificate.display_name }}</td>
+                                    <td class="action-cell">
+                                        <a class="btn view" href="/view_certificate/{{ salary_certificate.id }}" target="_blank">View PDF</a>
+                                        <a class="btn download" href="/download_certificate/{{ salary_certificate.id }}">Download</a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="empty">No salary certificate selected or available.</div>
+                {% endif %}
+
+                <div class="info-box">
+                    If your salary certificate is not showing, please contact ADMIN.
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    toggleSpecificPeriod();
+</script>
+
+</body>
+</html>
