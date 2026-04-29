@@ -641,7 +641,8 @@
                 <div class="filter-row">
                     <p class="hint">Filter salary slips and certificates by selected employee.</p>
                     <select id="salaryEmployeeFilter" class="search-box">
-                        <option value="">All Employees</option>
+                        <option value="">Select Employee</option>
+                        <option value="__ALL__">All Employees</option>
                         {% for emp in employees %}
                             <option value="{{ emp.email }}">{{ emp.name }} ({{ emp.email }})</option>
                         {% endfor %}
@@ -770,13 +771,24 @@ function setupSalaryEmployeeFilter() {
     const filter = document.getElementById('salaryEmployeeFilter');
     if (!filter) return;
 
-    filter.addEventListener('change', function () {
-        const selectedEmail = this.value;
+    function applySalaryFilter() {
+        const selectedEmail = filter.value;
         document.querySelectorAll('.salary-row, .certificate-row').forEach(row => {
             const rowEmail = row.getAttribute('data-email');
-            row.style.display = (!selectedEmail || rowEmail === selectedEmail) ? '' : 'none';
+
+            // Default page load: keep list empty until admin selects employee or All Employees.
+            if (!selectedEmail) {
+                row.style.display = 'none';
+            } else if (selectedEmail === '__ALL__') {
+                row.style.display = '';
+            } else {
+                row.style.display = (rowEmail === selectedEmail) ? '' : 'none';
+            }
         });
-    });
+    }
+
+    filter.addEventListener('change', applySalaryFilter);
+    applySalaryFilter();
 }
 
 function setupToast() {
