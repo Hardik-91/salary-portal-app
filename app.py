@@ -306,6 +306,45 @@ def safe_get_salary_certificates(employee_email):
         return []
 
 
+def safe_get_statement_requests(employee_email=None):
+    """Read salary statement requests safely. If table is missing, return empty list."""
+    try:
+        q = supabase.table("salary_statement_requests").select("*")
+        if employee_email:
+            q = q.eq("employee_email", employee_email)
+        rows = q.order("created_at", desc=True).execute().data or []
+        return rows
+    except Exception:
+        return []
+
+
+def safe_insert_statement_request(employee, financial_year):
+    """Create a salary statement request. Returns (ok, message)."""
+    try:
+        existing = supabase.table("salary_statement_requests").select("*").eq(
+            "employee_email", employee.get("email", "")
+        ).eq("financial_year", financial_year).eq("status", "Pending").execute().data or []
+
+        if existing:
+            return False, "Request already pending for selected financial year"
+
+        supabase.table("salary_statement_requests").insert(
+            {
+                "employee_email": employee.get("email", ""),
+                "employee_name": employee.get("name", ""),
+                "employee_id": employee.get("employee_id", ""),
+                "financial_year": financial_year,
+                "status": "Pending",
+                "created_at": datetime.now().isoformat(timespec="seconds"),
+            }
+        ).execute()
+        return True, "Salary statement request sent to admin successfully"
+    except Exception as e:
+        error_text = str(e)
+        print("SALARY STATEMENT REQUEST ERROR:", error_text)
+        return False, "Request failed. Please contact admin."
+
+
 @app.route("/", methods=["GET", "POST"])
 def login():
     message = ""
@@ -387,6 +426,14 @@ def dashboard():
 
                 message = "Password updated successfully"
 
+        elif action == "request_salary_statement":
+            financial_year = request.form.get("statement_financial_year", "").strip()
+
+            if not financial_year:
+                message = "Please select financial year"
+            else:
+                _, message = safe_insert_statement_request(employee, financial_year)
+
     # If employee opens dashboard normally, show the LAST UPLOADED salary slip by default.
     # When employee selects a filter and clicks Show Salary Slips, then apply that filter.
     period_type = request.args.get("period_type")
@@ -466,6 +513,8 @@ def dashboard():
         email=employee.get("email", ""),
         employee_id=employee.get("employee_id", ""),
         mobile=employee.get("mobile", ""),
+        employee=employee,
+        statement_requests=safe_get_statement_requests(session["employee_email"]),
         slips=slips,
         financial_years=financial_years,
         period_type=period_type,
@@ -984,6 +1033,29 @@ def admin_dashboard():
                 except Exception as e:
                     message = f"Admin password update failed: {str(e)}"
 
+        elif action == "mark_statement_request_done":
+            request_id = request.form.get("request_id", "").strip()
+            if request_id:
+                try:
+                    supabase.table("salary_statement_requests").update({"status": "Completed"}).eq("id", int(request_id)).execute()
+                    message = "Salary statement request marked as completed"
+                except Exception as e:
+                    message = f"Statement request update failed: {str(e)}"
+            else:
+                message = "Statement request not selected"
+
+        elif action == "delete_statement_request":
+            request_id = request.form.get("request_id", "").strip()
+
+            if request_id:
+                try:
+                    supabase.table("salary_statement_requests").delete().eq("id", int(request_id)).execute()
+                    message = "Salary statement request deleted successfully"
+                except Exception as e:
+                    message = f"Delete request failed: {str(e)}"
+            else:
+                message = "Request not selected"
+
         elif action == "bulk_upload_slip":
             bulk_file = request.files.get("bulk_salary_file")
 
@@ -1089,6 +1161,10 @@ def admin_dashboard():
         if not message:
             message = "Salary certificate table not found. Please create table salary_certificates."
 
+
+    statement_requests = safe_get_statement_requests()
+    pending_statement_requests = len([r for r in statement_requests if r.get("status") == "Pending"])
+
     for slip in slips:
         slip["display_name"] = os.path.basename(slip.get("filename", ""))
 
@@ -1111,6 +1187,8 @@ def admin_dashboard():
         total_inactive=total_inactive,
         total_slips=len(slips),
         total_certificates=len(certificates),
+        statement_requests=statement_requests,
+        pending_statement_requests=pending_statement_requests,
         backup_info=latest_backup_info(),
         active_tab=active_tab,
         company_settings=company_settings,

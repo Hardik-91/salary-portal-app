@@ -430,6 +430,7 @@
                 <div class="stat"><span>Total Inactive Employees</span><h2>{{ total_inactive }}</h2></div>
                 <div class="stat"><span>System Status</span><h2>Active</h2></div>
                 <div class="stat"><span>Latest Backup</span><h2 style="font-size:18px;">{{ backup_info.created_at }}</h2></div>
+                <div class="stat"><span>Pending Statement Requests</span><h2>{{ pending_statement_requests }}</h2></div>
             </div>
 
             <div class="card">
@@ -446,6 +447,62 @@
                     </table>
                 </div>
             </div>
+            <div class="card">
+                <h2>Salary Statement Requests</h2>
+                <p class="hint">Employee requests for salary statement by financial year.</p>
+                <div class="table-wrap">
+                    <table class="compact-table">
+                        <tr>
+                            <th>Sr No</th>
+                            <th>Employee ID</th>
+                            <th>Employee Name</th>
+                            <th>Email ID</th>
+                            <th>Financial Year</th>
+                            <th>Status</th>
+                            <th>Requested On</th>
+                            <th>Action</th>
+                        </tr>
+                        {% for req in statement_requests %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ req.employee_id }}</td>
+                            <td>{{ req.employee_name }}</td>
+                            <td>{{ req.employee_email }}</td>
+                            <td>{{ req.financial_year }}</td>
+                            <td>
+                                {% if req.status == "Completed" %}
+                                    <span class="status-active">Completed</span>
+                                {% else %}
+                                    <span class="status-inactive">Pending</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ req.created_at }}</td>
+                            <td>
+                                {% if req.status != "Completed" %}
+                                <form method="POST" style="margin:0;">
+                                    <input type="hidden" name="action" value="mark_statement_request_done">
+                                    <input type="hidden" name="tab" value="dashboard">
+                                    <input type="hidden" name="request_id" value="{{ req.id }}">
+                                    <button class="submit success" type="submit" style="padding:6px 9px;margin:0;width:auto;">Mark Done</button>
+                                </form>
+                                {% else %}
+                                <form method="POST" style="margin:0;" onsubmit="return confirm('Delete this completed request?');">
+                                    <input type="hidden" name="action" value="delete_statement_request">
+                                    <input type="hidden" name="tab" value="dashboard">
+                                    <input type="hidden" name="request_id" value="{{ req.id }}">
+                                    <button class="submit danger" type="submit" style="padding:6px 9px;margin:0;width:auto;">Delete</button>
+                                </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% if not statement_requests %}
+                        <tr><td colspan="8" style="text-align:center;color:#64748b;font-weight:bold;">No salary statement requests yet.</td></tr>
+                        {% endif %}
+                    </table>
+                </div>
+            </div>
+
         </div>
 
 
