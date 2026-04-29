@@ -338,7 +338,7 @@ def safe_insert_statement_request(employee, financial_year):
                 "created_at": datetime.now().isoformat(timespec="seconds"),
             }
         ).execute()
-        return True, "Salary statement request sent to admin successfully"
+        return True, "Salary certificate request sent to admin successfully"
     except Exception as e:
         error_text = str(e)
         print("SALARY STATEMENT REQUEST ERROR:", error_text)
@@ -1050,7 +1050,7 @@ def admin_dashboard():
             if request_id:
                 try:
                     supabase.table("salary_statement_requests").delete().eq("id", int(request_id)).execute()
-                    message = "Salary statement request deleted successfully"
+                    message = "Salary certificate request deleted successfully"
                 except Exception as e:
                     message = f"Delete request failed: {str(e)}"
             else:

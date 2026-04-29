@@ -617,8 +617,8 @@
             </div>
 
             <div class="card request-card">
-                <h2>REQUEST SALARY STATEMENT</h2>
-                <div class="small-text">Select financial year and send request to admin.</div>
+                <h2>REQUEST SALARY CERTIFICATE</h2>
+                <div class="small-text">Select financial year and request salary certificate from admin.</div>
 
                 <form method="POST" action="/dashboard" class="filter-box">
                     <input type="hidden" name="action" value="request_salary_statement">
@@ -629,10 +629,10 @@
                             <option value="{{ fy }}">{{ fy }}</option>
                         {% endfor %}
                     </select>
-                    <button type="submit">Request Salary Statement</button>
+                    <button type="submit">Request Salary Certificate</button>
                 </form>
 
-                <h2 style="margin-top:16px;">MY REQUESTS</h2>
+                <h2 style="margin-top:16px;">MY CERTIFICATE REQUESTS</h2>
                 {% if statement_requests %}
                     <div class="table-wrap">
                         <table class="compact-table">
