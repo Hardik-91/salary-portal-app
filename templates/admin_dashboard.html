@@ -392,9 +392,10 @@
 <div class="layout">
     <div class="sidebar">
         <div class="brand-logo-box">
-            {% if company_settings.logo_url %}
-                <img class="brand-logo" src="{{ company_settings.logo_url }}" alt="Company Logo">
-            {% endif %}
+            <img class="brand-logo"
+                 src="{{ url_for('static', filename='images/login_logo.png') }}"
+                 alt="Logo"
+                 onerror="this.style.display='none';">
             <div class="brand-title">{{ company_settings.company_name }}</div>
         </div>
         <button class="nav-btn" onclick="showTab('dashboard', this)">Dashboard</button>
@@ -407,9 +408,11 @@
     <div class="main">
         <div class="topbar">
             <div class="topbar-company">
-                {% if company_settings.logo_url %}
-                    <img src="{{ company_settings.logo_url }}" alt="Company Logo">
-                {% endif %}
+                <img src="{{ url_for('static', filename='images/login_logo.png') }}" 
+                     alt="Logo"
+                     onerror="this.style.display='none';"
+                     style="width:46px; height:46px; border-radius:10px; object-fit:contain; background:#f8fafc; padding:5px; border:1px solid #e2e8f0;">
+
                 <div>
                     <h1>{{ company_settings.company_name }} - Admin Dashboard</h1>
                     <p class="hint">Premium control panel for employees, salary files, backups, and system settings.</p>
