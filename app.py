@@ -445,7 +445,8 @@ def dashboard():
     from_year = request.args.get("from_year", "")
     to_month = request.args.get("to_month", "")
     to_year = request.args.get("to_year", "")
-    certificate_fy = request.args.get("certificate_fy", "")
+    selected_certificate_fy = request.args.get("certificate_fy")
+    certificate_fy = selected_certificate_fy
 
     all_slips = supabase.table("salary_slips").select("*").eq(
         "employee_email", session["employee_email"]
@@ -484,17 +485,6 @@ def dashboard():
 
     slips = sorted(slips, key=lambda x: x.get("month_key") or 0, reverse=True)
 
-    financial_years = sorted(
-        list(set(slip["financial_year"] for slip in all_slips if slip["financial_year"] != "Unknown")),
-        reverse=True
-    )
-
-    # Keep current and previous FY in dropdown even if no slips exist yet.
-    for fy in [current_fy, previous_fy]:
-        if fy not in financial_years:
-            financial_years.append(fy)
-    financial_years = sorted(financial_years, reverse=True)
-
     current_year = date.today().year
     years = list(range(current_year + 1, current_year - 10, -1))
 
@@ -503,9 +493,41 @@ def dashboard():
 
     for cert in certificates:
         cert["display_name"] = os.path.basename(cert.get("filename", ""))
-        if certificate_fy and cert.get("financial_year") == certificate_fy:
-            salary_certificate = cert
-            break
+
+    # Salary Certificate default:
+    # Dropdown default = Previous Financial Year.
+    # File shown by default = last uploaded salary certificate.
+    # If employee manually selects FY, then show certificate for that selected FY.
+    if not certificate_fy:
+        certificate_fy = previous_financial_year()
+        if certificates:
+            salary_certificate = sorted(
+                certificates,
+                key=lambda x: (
+                    str(x.get("created_at") or x.get("uploaded_at") or ""),
+                    int(x.get("id") or 0)
+                ),
+                reverse=True
+            )[0]
+    else:
+        for cert in certificates:
+            if cert.get("financial_year") == certificate_fy:
+                salary_certificate = cert
+                break
+
+    financial_years = sorted(
+        list(set(
+            [slip["financial_year"] for slip in all_slips if slip["financial_year"] != "Unknown"] +
+            [cert.get("financial_year") for cert in certificates if cert.get("financial_year")]
+        )),
+        reverse=True
+    )
+
+    # Keep current and previous FY in dropdown even if no files exist yet.
+    for fy in [current_fy, previous_fy]:
+        if fy not in financial_years:
+            financial_years.append(fy)
+    financial_years = sorted(financial_years, reverse=True)
 
     return render_template(
         "dashboard.html",
@@ -527,6 +549,84 @@ def dashboard():
         salary_certificate=salary_certificate,
         message=message,
         company_settings=load_company_settings(),
+    )
+
+
+
+@app.route("/download_all_slips")
+def download_all_slips():
+    if "employee_email" not in session:
+        return redirect("/")
+
+    employee_email = session["employee_email"]
+
+    period_type = request.args.get("period_type")
+    from_month = request.args.get("from_month", "")
+    from_year = request.args.get("from_year", "")
+    to_month = request.args.get("to_month", "")
+    to_year = request.args.get("to_year", "")
+
+    all_slips = supabase.table("salary_slips").select("*").eq(
+        "employee_email", employee_email
+    ).execute().data or []
+
+    for slip in all_slips:
+        slip["financial_year"] = get_financial_year(slip.get("month", ""))
+        slip["month_key"] = month_key(slip.get("month", ""))
+
+    current_fy = current_financial_year()
+    previous_fy = previous_financial_year()
+
+    # If no filter is applied, download all uploaded slips for this employee.
+    if not period_type:
+        selected_slips = all_slips
+    elif period_type == "previous":
+        selected_slips = [slip for slip in all_slips if slip["financial_year"] == previous_fy]
+    elif period_type == "specific":
+        start_key = month_year_key(from_month, from_year)
+        end_key = month_year_key(to_month, to_year)
+
+        if start_key and end_key:
+            if start_key > end_key:
+                start_key, end_key = end_key, start_key
+            selected_slips = [
+                slip for slip in all_slips
+                if slip.get("month_key") and start_key <= slip["month_key"] <= end_key
+            ]
+        else:
+            selected_slips = []
+    else:
+        selected_slips = [slip for slip in all_slips if slip["financial_year"] == current_fy]
+
+    if not selected_slips:
+        return "No salary slips available to download"
+
+    zip_buffer = BytesIO()
+
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as salary_zip:
+        for slip in selected_slips:
+            try:
+                signed = supabase.storage.from_(SUPABASE_BUCKET).create_signed_url(
+                    slip["filename"], 300
+                )
+                file_url = signed.get("signedURL") or signed.get("signedUrl")
+                if not file_url:
+                    continue
+
+                response = requests.get(file_url)
+                if response.status_code == 200:
+                    file_name = os.path.basename(slip.get("filename", "salary_slip.pdf"))
+                    salary_zip.writestr(file_name, response.content)
+            except Exception:
+                pass
+
+    zip_buffer.seek(0)
+
+    return send_file(
+        zip_buffer,
+        as_attachment=True,
+        download_name="salary_slips.zip",
+        mimetype="application/zip",
     )
 
 

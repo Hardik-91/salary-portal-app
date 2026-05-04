@@ -386,7 +386,174 @@
             border: 1px solid #e2e8f0;
         }
 
-    </style>
+    
+/* ================= NRICH SKYOTEL MAROON + GOLD THEME ================= */
+:root {
+    --primary: #5b0b25;
+    --primary-dark: #3d0719;
+    --primary-light: #8b1238;
+    --accent: #d4af37;
+    --accent-dark: #b8962e;
+    --bg: #f3f4f6;
+    --panel: #ffffff;
+    --text: #1f2937;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --shadow: 0 18px 45px rgba(91, 11, 37, 0.10);
+}
+
+body {
+    background: var(--bg) !important;
+    color: var(--text);
+    font-family: Inter, Segoe UI, Arial, sans-serif !important;
+}
+
+.sidebar {
+    background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%) !important;
+    box-shadow: 16px 0 40px rgba(91,11,37,0.22);
+    border-right: 1px solid rgba(212,175,55,0.18);
+}
+
+.nav-btn {
+    color: #f8e8ee !important;
+}
+
+.nav-btn:hover,
+.nav-btn.active {
+    background: linear-gradient(135deg, var(--accent), var(--accent-dark)) !important;
+    color: #2b0613 !important;
+    transform: translateX(4px);
+    box-shadow: 0 10px 22px rgba(212,175,55,0.25);
+}
+
+.logout {
+    background: linear-gradient(135deg, #ef4444, #b91c1c) !important;
+}
+
+.topbar {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark)) !important;
+    color: white !important;
+    border: 1px solid rgba(212,175,55,0.25) !important;
+}
+
+.topbar h1,
+.topbar .hint {
+    color: white !important;
+}
+
+.card,
+.stat {
+    background: var(--panel) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 20px !important;
+    box-shadow: var(--shadow) !important;
+    transition: transform .18s ease, box-shadow .18s ease;
+}
+
+.card:hover,
+.stat:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 22px 55px rgba(91,11,37,0.13) !important;
+}
+
+.stat {
+    border-left: 5px solid var(--accent) !important;
+}
+
+.stat span {
+    color: var(--muted) !important;
+}
+
+.stat h2,
+.card h2,
+.card h3,
+.section-title h2 {
+    color: var(--primary) !important;
+}
+
+input,
+select {
+    border-radius: 12px !important;
+    border-color: #d8dde5 !important;
+    font-family: Inter, Segoe UI, Arial, sans-serif !important;
+}
+
+input:focus,
+select:focus {
+    outline: none !important;
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 4px rgba(212,175,55,0.18) !important;
+}
+
+button.submit,
+button,
+.action-btn,
+.btn.view,
+.btn.download {
+    background: linear-gradient(135deg, var(--primary), var(--primary-light)) !important;
+    color: white !important;
+    border-radius: 11px !important;
+    transition: all .18s ease;
+}
+
+button.submit:hover,
+button:hover,
+.action-btn:hover,
+.btn.view:hover,
+.btn.download:hover {
+    background: linear-gradient(135deg, var(--accent), var(--accent-dark)) !important;
+    color: #2b0613 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 10px 20px rgba(212,175,55,0.20);
+}
+
+.danger {
+    background: linear-gradient(135deg, #dc2626, #991b1b) !important;
+    color: white !important;
+}
+
+.success {
+    background: linear-gradient(135deg, #16a34a, #15803d) !important;
+    color: white !important;
+}
+
+.compact-table th {
+    background: #fbf7ec !important;
+    color: var(--primary) !important;
+    border-bottom: 1px solid rgba(212,175,55,0.35) !important;
+}
+
+.compact-table tr:hover {
+    background: #fffaf0 !important;
+}
+
+.employee-toolbar {
+    border: 1px solid rgba(212,175,55,0.35) !important;
+}
+
+.toolbar-btn.active {
+    color: var(--primary) !important;
+    border-bottom-color: var(--accent) !important;
+    background: linear-gradient(180deg, #fffaf0, #ffffff) !important;
+}
+
+.toolbar-btn:hover {
+    color: var(--primary) !important;
+}
+
+.request-card,
+.backup-card {
+    background: linear-gradient(135deg, #fffaf0, #ffffff) !important;
+    border: 1px solid rgba(212,175,55,0.35) !important;
+}
+
+.info-box {
+    background: #fffaf0 !important;
+    color: var(--primary) !important;
+    border: 1px solid rgba(212,175,55,0.35) !important;
+}
+
+</style>
 </head>
 <body>
 <div class="layout">
