@@ -2,114 +2,306 @@
 <html>
 <head>
     <title>Employee Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Premium Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&display=swap" rel="stylesheet">
+
     <style>
+        * { box-sizing: border-box; }
+
         body {
             margin: 0;
-            font-family: Arial;
-            background: linear-gradient(to right, #1e293b, #334155);
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            background: #f3f4f6;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
         }
 
-        .login-box {
-            background: #fff;
-            padding: 40px;
-            border-radius: 12px;
-            width: 350px;
-            text-align: center;
+        .login-wrapper {
+            width: 900px;
+            max-width: 94%;
+            min-height: 540px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: white;
+            border-radius: 22px;
+            overflow: hidden;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.18);
+            animation: fadeUp 0.7s ease;
         }
 
-        h2 { margin-bottom: 10px; }
-        p { color: gray; margin-bottom: 20px; }
-
-        label {
-            display: block;
-            text-align: left;
-            margin-top: 15px;
-            font-weight: bold;
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(25px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        input {
-            width: 100%;
-            padding: 10px;
-            margin-top: 5px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-        }
-
-        .options {
+        .form-side {
+            padding: 55px;
             display: flex;
-            justify-content: space-between;
-            margin-top: 15px;
+            justify-content: center;
             align-items: center;
         }
 
-        .options a {
-            color: #2563eb;
-            text-decoration: none;
-            font-size: 14px;
+        .form-box {
+            width: 100%;
+            max-width: 340px;
+            text-align: center;
         }
 
-        button {
-            margin-top: 20px;
-            width: 100%;
-            padding: 12px;
-            background: #2563eb;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
+        .small-logo {
+            width: 90px;
+            margin-bottom: 18px;
+        }
+
+        h2 {
+            margin: 0;
+            color: #5b0b25;
+            font-size: 26px;
+        }
+
+        .subtitle {
+            color: #777;
+            margin: 10px 0 28px;
+            font-size: 14px;
         }
 
         .error {
             background: #fee2e2;
             color: #b91c1c;
             padding: 10px;
-            border-radius: 8px;
+            border-radius: 10px;
             margin-bottom: 15px;
+            font-size: 13px;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #7a0c2e;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 14px 44px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .input-group input:focus {
+            border-color: #7a0c2e;
+            box-shadow: 0 0 0 4px rgba(122,12,46,0.08);
+        }
+
+        .toggle-pass {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+        }
+
+        .options {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            margin: 8px 0 18px;
+        }
+
+        .options label {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .options a,
+        .switch a {
+            color: #7a0c2e;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #5b0b25, #8b1238);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.25s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(122,12,46,0.28);
+        }
+
+        .switch {
+            margin-top: 18px;
+            font-size: 14px;
+        }
+
+        .brand-side {
+            background: #5b0b25;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 35px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .brand-image {
+            width: 100%;
+            max-width: 260px;
+            animation: floatLogo 3s infinite ease-in-out;
+        }
+
+        @keyframes floatLogo {
+            0%,100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .brand-content {
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .brand-title {
+            font-family: 'Cinzel Decorative', serif;
+            font-weight: 900;
+            font-size: 32px;
+            letter-spacing: 2px;
+            margin: 18px 0 6px;
+            background: linear-gradient(90deg, #b8860b, #fff3a3, #d4af37, #fff3a3, #b8860b);
+            background-size: 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 3s infinite linear;
+            text-shadow: 0 0 18px rgba(255, 215, 0, 0.35);
+        }
+
+        .brand-tagline {
+            font-family: 'Cinzel Decorative', serif;
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: 4px;
+            margin: 0;
+            background: linear-gradient(90deg, #d4af37, #fff4b8, #d4af37);
+            background-size: 250%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 3.5s infinite linear;
+            text-shadow: 0 0 14px rgba(255, 215, 0, 0.35);
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 0%; }
+            100% { background-position: 300%; }
+        }
+
+        @media(max-width: 800px) {
+            .login-wrapper {
+                grid-template-columns: 1fr;
+                min-height: auto;
+            }
+
+            .brand-side {
+                display: none;
+            }
+
+            .form-side {
+                padding: 40px 28px;
+            }
         }
     </style>
 </head>
+
 <body>
 
-<div class="login-box">
+<div class="login-wrapper">
 
-    <!-- LOGO FIRST -->
-    <div style="text-align:center; margin-bottom:15px;">
-        <img src="{{ url_for('static', filename='images/login_logo.png') }}" 
-             style="max-height:80px; max-width:220px; object-fit:contain;">
+    <div class="form-side">
+        <div class="form-box">
+
+            <img class="small-logo" src="{{ url_for('static', filename='images/login_logo.png') }}" alt="Logo">
+
+            <h2>Employee Login</h2>
+            <p class="subtitle">Welcome! Please login to continue.</p>
+
+            {% if message %}
+                <div class="error">{{ message }}</div>
+            {% endif %}
+
+            <form method="POST">
+
+                <div class="input-group">
+                    <span class="input-icon">✉</span>
+                    <input type="email" name="email" placeholder="Email" required>
+                </div>
+
+                <div class="input-group">
+                    <span class="input-icon">🔒</span>
+                    <input type="password" name="password" id="employee_password" placeholder="Password" required>
+                    <span class="toggle-pass" onclick="togglePassword('employee_password', this)">👁</span>
+                </div>
+
+                <div class="options">
+                    <label>
+                        <input type="checkbox" name="remember"> Remember Me
+                    </label>
+                    <a href="/forgot-password">Forgot Password?</a>
+                </div>
+
+                <button type="submit">Login</button>
+
+            </form>
+
+            <div class="switch">
+                <a href="/admin">Admin Login</a>
+            </div>
+
+        </div>
     </div>
 
-    <h2>Employee Salary Portal</h2>
-    <p>Please login to continue</p>
-
-    {% if message %}
-        <div class="error">{{ message }}</div>
-    {% endif %}
-
-    <form method="POST">
-        <label>Email</label>
-        <input type="email" name="email" required>
-
-        <label>Password</label>
-        <input type="password" name="password" required>
-
-        <div class="options">
-            <label>
-                <input type="checkbox" name="remember" style="width:auto;"> Remember Me
-            </label>
-            <a href="/forgot-password">Forgot Password?</a>
+    <div class="brand-side">
+        <div class="brand-content">
+            <img class="brand-image" src="{{ url_for('static', filename='images/login_logo.png') }}" alt="NRICH SKYOTEL">
+            <h1 class="brand-title">Nrich Skyotel</h1>
+            <p class="brand-tagline">enriching luxury</p>
         </div>
+    </div>
 
-        <button type="submit">Login</button>
-    </form>
-
-    <p style="margin-top:15px;">
-        <a href="/admin">Admin Login</a>
-    </p>
 </div>
+
+<script>
+    function togglePassword(inputId, icon) {
+        const input = document.getElementById(inputId);
+
+        if (input.type === "password") {
+            input.type = "text";
+            icon.innerText = "🙈";
+        } else {
+            input.type = "password";
+            icon.innerText = "👁";
+        }
+    }
+</script>
 
 </body>
 </html>
