@@ -13,7 +13,7 @@ from supabase import create_client, Client
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=True)
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "change_this_secret_key")
@@ -163,6 +163,42 @@ def latest_backup_info():
     created_at = datetime.fromtimestamp(os.path.getmtime(latest)).strftime("%d-%m-%Y %I:%M %p")
     return {"exists": True, "filename": backups[0], "created_at": created_at}
 
+
+
+
+def normalize_date_for_db(date_value):
+    """Store dates as YYYY-MM-DD, accepting HTML dates, dd-Mon-yyyy, dd/mm/yyyy and Excel dates."""
+    if date_value is None or date_value == "":
+        return ""
+    try:
+        if pd.isna(date_value):
+            return ""
+    except Exception:
+        pass
+    if isinstance(date_value, (pd.Timestamp, datetime, date)):
+        return date_value.strftime("%Y-%m-%d")
+
+    text = str(date_value).strip()
+    if not text or text.lower() in ["nan", "nat", "none", "-"]:
+        return ""
+
+    for fmt in ("%Y-%m-%d", "%d-%b-%Y", "%d-%B-%Y", "%d/%m/%Y", "%d-%m-%Y", "%m/%d/%Y"):
+        try:
+            return datetime.strptime(text, fmt).strftime("%Y-%m-%d")
+        except Exception:
+            pass
+    return text
+
+
+def format_date_display(date_value):
+    """Show dates as dd-Mmm-yyyy, for example 04-May-2026."""
+    db_date = normalize_date_for_db(date_value)
+    if not db_date:
+        return "-"
+    try:
+        return datetime.strptime(db_date, "%Y-%m-%d").strftime("%d-%b-%Y")
+    except Exception:
+        return str(date_value) if str(date_value).strip() else "-"
 
 def ensure_daily_backup():
     """Automatically create one backup per day when admin opens dashboard."""
@@ -318,6 +354,18 @@ def safe_get_statement_requests(employee_email=None):
         return []
 
 
+
+def safe_get_correction_requests(employee_email=None):
+    """Read employee correction requests safely. If table is missing, return empty list."""
+    try:
+        q = supabase.table("correction_requests").select("*")
+        if employee_email:
+            q = q.eq("employee_email", employee_email)
+        rows = q.order("created_at", desc=True).execute().data or []
+        return rows
+    except Exception:
+        return []
+
 def safe_insert_statement_request(employee, financial_year):
     """Create a salary statement request. Returns (ok, message)."""
     try:
@@ -356,7 +404,7 @@ def login():
         user = get_employee_by_email(email)
 
         if user and password_match(user["password"], password):
-            if user.get("status") in ["Inactive", "Blocked"]:
+            if user.get("status") in ["Inactive", "Blocked", "Block", "Resigned", "Left"]:
                 message = "Your account is inactive. Please contact admin."
                 return render_template("login.html", message=message)
 
@@ -404,6 +452,10 @@ def dashboard():
         session.clear()
         return redirect("/")
 
+    # Format employee profile dates for Employee Dashboard display.
+    employee["date_of_joining_display"] = format_date_display(employee.get("date_of_joining"))
+    employee["date_of_exit_display"] = format_date_display(employee.get("date_of_exit"))
+
     if request.method == "POST":
         action = request.form.get("action")
 
@@ -433,6 +485,23 @@ def dashboard():
                 message = "Please select financial year"
             else:
                 _, message = safe_insert_statement_request(employee, financial_year)
+
+        elif action == "raise_correction_request":
+            message_text = request.form.get("correction_message", "").strip()
+
+            if message_text:
+                supabase.table("correction_requests").insert({
+                    "employee_email": session.get("employee_email"),
+                    "employee_name": session.get("employee_name"),
+                    "employee_id": employee.get("employee_id", ""),
+                    "message": message_text,
+                    "status": "Pending",
+                    "created_at": datetime.now().isoformat()
+                }).execute()
+
+                message = "Request submitted successfully"
+            else:
+                message = "Please enter message"
 
     # If employee opens dashboard normally, show the LAST UPLOADED salary slip by default.
     # When employee selects a filter and clicks Show Salary Slips, then apply that filter.
@@ -537,6 +606,7 @@ def dashboard():
         mobile=employee.get("mobile", ""),
         employee=employee,
         statement_requests=safe_get_statement_requests(session["employee_email"]),
+        correction_requests=safe_get_correction_requests(session["employee_email"]),
         slips=slips,
         financial_years=financial_years,
         period_type=period_type,
@@ -800,6 +870,18 @@ def admin_dashboard():
             mobile = request.form.get("mobile", "").strip()
             email = request.form.get("email", "").strip()
             password = request.form.get("password", "").strip()
+            epf_no = request.form.get("epf_no", "").strip()
+            esic_no = request.form.get("esic_no", "").strip()
+            date_of_joining = normalize_date_for_db(request.form.get("date_of_joining", ""))
+            status = request.form.get("status", "Active").strip() or "Active"
+            date_of_exit = normalize_date_for_db(request.form.get("date_of_exit", ""))
+
+            if status not in ["Active", "Resigned", "Left"]:
+                status = "Active"
+
+            # If employee is active, exit date should remain blank.
+            if status == "Active":
+                date_of_exit = ""
 
             if name and email and password:
                 existing = get_employee_by_email(email)
@@ -815,6 +897,11 @@ def admin_dashboard():
                             "mobile": mobile,
                             "email": email,
                             "password": hashed,
+                            "epf_no": epf_no,
+                            "esic_no": esic_no,
+                            "date_of_joining": date_of_joining,
+                            "status": status,
+                            "date_of_exit": date_of_exit,
                         }
                     ).execute()
                     message = "Employee added successfully"
@@ -836,6 +923,11 @@ def admin_dashboard():
                         "Mobile Number",
                         "Email ID",
                         "Password",
+                        "EPF No",
+                        "ESIC No",
+                        "Date of Joining",
+                        "Status",
+                        "Date of Exit",
                     ]
 
                     missing = [col for col in required_columns if col not in df.columns]
@@ -846,14 +938,30 @@ def admin_dashboard():
                         added_count = 0
                         skipped_count = 0
 
-                        for _, row in df.iterrows():
-                            name = str(row["Full Name"]).strip()
-                            employee_id = str(row["Employee ID"]).strip()
-                            mobile = str(row["Mobile Number"]).strip()
-                            email = str(row["Email ID"]).strip()
-                            password = str(row["Password"]).strip()
+                        def clean_excel_value(value):
+                            if pd.isna(value):
+                                return ""
+                            return str(value).strip()
 
-                            if not name or not email or not password or email.lower() == "nan":
+                        for _, row in df.iterrows():
+                            name = clean_excel_value(row["Full Name"])
+                            employee_id = clean_excel_value(row["Employee ID"])
+                            mobile = clean_excel_value(row["Mobile Number"])
+                            email = clean_excel_value(row["Email ID"])
+                            password = clean_excel_value(row["Password"])
+                            epf_no = clean_excel_value(row["EPF No"])
+                            esic_no = clean_excel_value(row["ESIC No"])
+                            date_of_joining = normalize_date_for_db(row["Date of Joining"])
+                            status = clean_excel_value(row["Status"]) or "Active"
+                            date_of_exit = normalize_date_for_db(row["Date of Exit"])
+
+                            if status not in ["Active", "Resigned", "Left"]:
+                                status = "Active"
+
+                            if status == "Active":
+                                date_of_exit = ""
+
+                            if not name or not email or not password:
                                 skipped_count += 1
                                 continue
 
@@ -868,10 +976,15 @@ def admin_dashboard():
                             supabase.table("employees").insert(
                                 {
                                     "name": name,
-                                    "employee_id": employee_id if employee_id.lower() != "nan" else "",
-                                    "mobile": mobile if mobile.lower() != "nan" else "",
+                                    "employee_id": employee_id,
+                                    "mobile": mobile,
                                     "email": email,
                                     "password": hashed,
+                                    "epf_no": epf_no,
+                                    "esic_no": esic_no,
+                                    "date_of_joining": date_of_joining,
+                                    "status": status,
+                                    "date_of_exit": date_of_exit,
                                 }
                             ).execute()
 
@@ -881,6 +994,61 @@ def admin_dashboard():
 
                 except Exception as e:
                     message = f"Excel upload failed: {str(e)}"
+
+        elif action == "update_employee":
+            old_email = request.form.get("old_email", "").strip()
+            name = request.form.get("name", "").strip()
+            employee_id = request.form.get("employee_id", "").strip()
+            mobile = request.form.get("mobile", "").strip()
+            email = request.form.get("email", "").strip()
+            epf_no = request.form.get("epf_no", "").strip()
+            esic_no = request.form.get("esic_no", "").strip()
+            date_of_joining = normalize_date_for_db(request.form.get("date_of_joining", ""))
+            status = request.form.get("status", "Active").strip() or "Active"
+            date_of_exit = normalize_date_for_db(request.form.get("date_of_exit", ""))
+
+            if status not in ["Active", "Resigned", "Left", "Inactive", "Blocked", "Block"]:
+                status = "Active"
+
+            if status == "Active":
+                date_of_exit = ""
+
+            if not old_email or not name or not email:
+                message = "Please fill employee name and email"
+            else:
+                try:
+                    update_data = {
+                        "name": name,
+                        "employee_id": employee_id,
+                        "mobile": mobile,
+                        "email": email,
+                        "epf_no": epf_no,
+                        "esic_no": esic_no,
+                        "date_of_joining": date_of_joining,
+                        "status": status,
+                        "date_of_exit": date_of_exit,
+                    }
+
+                    supabase.table("employees").update(update_data).eq("email", old_email).execute()
+
+                    # If admin changes email ID, keep already uploaded salary files and certificates linked correctly.
+                    if email != old_email:
+                        try:
+                            supabase.table("salary_slips").update({"employee_email": email}).eq("employee_email", old_email).execute()
+                        except Exception:
+                            pass
+                        try:
+                            supabase.table("salary_certificates").update({"employee_email": email}).eq("employee_email", old_email).execute()
+                        except Exception:
+                            pass
+                        try:
+                            supabase.table("salary_statement_requests").update({"employee_email": email}).eq("employee_email", old_email).execute()
+                        except Exception:
+                            pass
+
+                    message = "Employee details updated successfully"
+                except Exception as e:
+                    message = f"Employee update failed: {str(e)}"
 
         elif action == "change_employee_password":
             email = request.form.get("employee_email", "").strip()
@@ -1053,7 +1221,7 @@ def admin_dashboard():
             email = request.form.get("employee_email", "").strip()
             if email:
                 try:
-                    supabase.table("employees").update({"status": "Inactive"}).eq("email", email).execute()
+                    supabase.table("employees").update({"status": "Block"}).eq("email", email).execute()
                     message = "Employee access blocked successfully"
                 except Exception as e:
                     if status_column_missing_error(e):
@@ -1155,6 +1323,47 @@ def admin_dashboard():
                     message = f"Delete request failed: {str(e)}"
             else:
                 message = "Request not selected"
+
+        elif action == "approve_correction_request":
+            request_id = request.form.get("request_id", "").strip()
+            admin_reply = request.form.get("admin_reply", "").strip()
+            if request_id:
+                try:
+                    supabase.table("correction_requests").update({
+                        "status": "Approved",
+                        "admin_reply": admin_reply,
+                    }).eq("id", int(request_id)).execute()
+                    message = "Correction request approved"
+                except Exception as e:
+                    message = f"Correction request update failed: {str(e)}"
+            else:
+                message = "Correction request not selected"
+
+        elif action == "reject_correction_request":
+            request_id = request.form.get("request_id", "").strip()
+            admin_reply = request.form.get("admin_reply", "").strip()
+            if request_id:
+                try:
+                    supabase.table("correction_requests").update({
+                        "status": "Rejected",
+                        "admin_reply": admin_reply,
+                    }).eq("id", int(request_id)).execute()
+                    message = "Correction request rejected"
+                except Exception as e:
+                    message = f"Correction request update failed: {str(e)}"
+            else:
+                message = "Correction request not selected"
+
+        elif action == "delete_correction_request":
+            request_id = request.form.get("request_id", "").strip()
+            if request_id:
+                try:
+                    supabase.table("correction_requests").delete().eq("id", int(request_id)).execute()
+                    message = "Correction request deleted"
+                except Exception as e:
+                    message = f"Delete correction request failed: {str(e)}"
+            else:
+                message = "Correction request not selected"
 
         elif action == "bulk_upload_slip":
             bulk_file = request.files.get("bulk_salary_file")
@@ -1264,6 +1473,8 @@ def admin_dashboard():
 
     statement_requests = safe_get_statement_requests()
     pending_statement_requests = len([r for r in statement_requests if r.get("status") == "Pending"])
+    correction_requests = safe_get_correction_requests()
+    pending_correction_requests = len([r for r in correction_requests if r.get("status") == "Pending"])
 
     for slip in slips:
         slip["display_name"] = os.path.basename(slip.get("filename", ""))
@@ -1271,8 +1482,14 @@ def admin_dashboard():
     for cert in certificates:
         cert["display_name"] = os.path.basename(cert.get("filename", ""))
 
-    total_active = len([emp for emp in employees if emp.get("status") not in ["Inactive", "Blocked"]])
-    total_inactive = len([emp for emp in employees if emp.get("status") in ["Inactive", "Blocked"]])
+    for emp in employees:
+        emp["date_of_joining_input"] = normalize_date_for_db(emp.get("date_of_joining"))
+        emp["date_of_exit_input"] = normalize_date_for_db(emp.get("date_of_exit"))
+        emp["date_of_joining_display"] = format_date_display(emp.get("date_of_joining"))
+        emp["date_of_exit_display"] = format_date_display(emp.get("date_of_exit"))
+
+    total_active = len([emp for emp in employees if emp.get("status") == "Active" or not emp.get("status")])
+    total_inactive = len([emp for emp in employees if emp.get("status") in ["Inactive", "Blocked", "Block", "Resigned", "Left"]])
 
     company_settings = load_company_settings()
 
@@ -1289,6 +1506,8 @@ def admin_dashboard():
         total_certificates=len(certificates),
         statement_requests=statement_requests,
         pending_statement_requests=pending_statement_requests,
+        correction_requests=correction_requests,
+        pending_correction_requests=pending_correction_requests,
         backup_info=latest_backup_info(),
         active_tab=active_tab,
         company_settings=company_settings,

@@ -40,6 +40,8 @@
         .hint { color: #64748b; font-size: 13px; margin: 6px 0; }
         .status-active { color: #16a34a; font-weight: bold; }
         .status-inactive { color: #dc2626; font-weight: bold; }
+        .status-resigned, .status-left, .status-block { color: #dc2626; font-weight: bold; }
+        .date-exit-wrap.hidden-exit-date { display: none; }
         .section-note { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; color: #475569; margin-bottom: 14px; font-weight: bold; }
 
         
@@ -553,6 +555,38 @@ button:hover,
     border: 1px solid rgba(212,175,55,0.35) !important;
 }
 
+
+
+        .edit-employee-row {
+            display: none;
+            background: #fffaf0 !important;
+        }
+        .edit-employee-box {
+            padding: 16px;
+            border: 1px solid rgba(212,175,55,0.35);
+            border-radius: 16px;
+            background: #fffaf0;
+        }
+        .edit-employee-box h3 {
+            margin: 0 0 10px;
+            color: var(--primary);
+        }
+        .edit-employee-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 10px;
+        }
+        .edit-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        .edit-actions .submit {
+            width: auto;
+            margin: 0;
+        }
+
 </style>
 </head>
 <body>
@@ -568,6 +602,7 @@ button:hover,
         <button class="nav-btn" onclick="showTab('dashboard', this)">Dashboard</button>
         <button class="nav-btn" onclick="showTab('employee_entry', this)">New Employee Entry</button>
         <button class="nav-btn" onclick="showTab('salary_upload', this)">Salary File Upload</button>
+        <button class="nav-btn" onclick="showTab('requests', this)">Requests {% if pending_correction_requests and pending_correction_requests > 0 %}<span style="float:right;background:#dc2626;color:white;border-radius:999px;padding:2px 7px;font-size:11px;">{{ pending_correction_requests }}</span>{% endif %}</button>
         <button class="nav-btn" onclick="showTab('settings', this)">Settings</button>
         <a class="logout" href="/admin/logout" onclick="return confirm('Logout admin?')">Logout</a>
     </div>
@@ -601,17 +636,18 @@ button:hover,
                 <div class="stat"><span>System Status</span><h2>Active</h2></div>
                 <div class="stat"><span>Latest Backup</span><h2 style="font-size:18px;">{{ backup_info.created_at }}</h2></div>
                 <div class="stat"><span>Pending Statement Requests</span><h2>{{ pending_statement_requests }}</h2></div>
+                <div class="stat"><span>Pending Correction Requests</span><h2>{{ pending_correction_requests }}</h2></div>
             </div>
 
             <div class="card">
                 <h2>Employee Status List</h2>
                 <div class="table-wrap">
                     <table class="compact-table">
-                        <tr><th>Sr No</th><th>Employee ID</th><th>Employee Name</th><th>Email ID</th><th>Mobile No</th><th>Status</th></tr>
+                        <tr><th>Sr No</th><th>Employee ID</th><th>Employee Name</th><th>Email ID</th><th>Mobile No</th><th>EPF No</th><th>ESIC No</th><th>Date of Joining</th><th>Date of Exit</th><th>Status</th></tr>
                         {% for emp in employees %}
                         <tr>
-                            <td>{{ loop.index }}</td><td>{{ emp.employee_id }}</td><td>{{ emp.name }}</td><td>{{ emp.email }}</td><td>{{ emp.mobile }}</td>
-                            <td>{% if emp.status == "Inactive" or emp.status == "Blocked" %}<span class="status-inactive">Inactive</span>{% else %}<span class="status-active">Active</span>{% endif %}</td>
+                            <td>{{ loop.index }}</td><td>{{ emp.employee_id }}</td><td>{{ emp.name }}</td><td>{{ emp.email }}</td><td>{{ emp.mobile }}</td><td>{{ emp.epf_no or "-" }}</td><td>{{ emp.esic_no or "-" }}</td><td>{{ emp.date_of_joining_display or "-" }}</td><td>{{ emp.date_of_exit_display or "-" }}</td>
+                            <td>{% if emp.status == "Active" or not emp.status %}<span class="status-active">Active</span>{% elif emp.status == "Resigned" %}<span class="status-resigned">Resigned</span>{% elif emp.status == "Left" %}<span class="status-left">Left</span>{% elif emp.status in ["Block", "Blocked", "Inactive"] %}<span class="status-block">Block</span>{% else %}<span class="status-inactive">{{ emp.status }}</span>{% endif %}</td>
                         </tr>
                         {% endfor %}
                     </table>
@@ -676,6 +712,71 @@ button:hover,
         </div>
 
 
+        <div id="requests" class="section">
+            <div class="section-title">
+                <h2>Employee Correction Requests</h2>
+                <p class="hint">Review employee detail correction requests. Approve or reject with optional admin reply.</p>
+            </div>
+
+            <div class="card">
+                <div class="table-wrap">
+                    <table class="compact-table admin-list">
+                        <tr>
+                            <th>Sr No</th>
+                            <th>Employee ID</th>
+                            <th>Employee Name</th>
+                            <th>Email ID</th>
+                            <th>Message</th>
+                            <th>Status</th>
+                            <th>Requested On</th>
+                            <th>Admin Reply / Action</th>
+                        </tr>
+                        {% for req in correction_requests %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ req.employee_id or '-' }}</td>
+                            <td>{{ req.employee_name or '-' }}</td>
+                            <td>{{ req.employee_email or '-' }}</td>
+                            <td style="min-width:240px;">{{ req.message }}</td>
+                            <td>
+                                {% if req.status == 'Approved' %}
+                                    <span class="status-active">Approved</span>
+                                {% elif req.status == 'Rejected' %}
+                                    <span class="status-inactive">Rejected</span>
+                                {% else %}
+                                    <span style="color:#f59e0b;font-weight:bold;">Pending</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ req.created_at }}</td>
+                            <td style="min-width:260px;">
+                                {% if req.status == 'Pending' %}
+                                <form method="POST" style="margin:0;">
+                                    <input type="hidden" name="tab" value="requests">
+                                    <input type="hidden" name="request_id" value="{{ req.id }}">
+                                    <input type="text" name="admin_reply" placeholder="Admin reply (optional)" style="margin:0 0 7px;">
+                                    <button class="submit success" name="action" value="approve_correction_request" type="submit" style="padding:6px 9px;margin:0;width:auto;">Approve</button>
+                                    <button class="submit danger" name="action" value="reject_correction_request" type="submit" style="padding:6px 9px;margin:0;width:auto;">Reject</button>
+                                </form>
+                                {% else %}
+                                    <div class="hint"><b>Reply:</b> {{ req.admin_reply or '-' }}</div>
+                                    <form method="POST" style="margin:0;" onsubmit="return confirm('Delete this request?');">
+                                        <input type="hidden" name="tab" value="requests">
+                                        <input type="hidden" name="request_id" value="{{ req.id }}">
+                                        <button class="submit danger" name="action" value="delete_correction_request" type="submit" style="padding:6px 9px;margin:0;width:auto;">Delete</button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% if not correction_requests %}
+                        <tr><td colspan="8" style="text-align:center;color:#64748b;font-weight:bold;">No correction requests yet.</td></tr>
+                        {% endif %}
+                    </table>
+                </div>
+            </div>
+        </div>
+
+
         <div id="employee_entry" class="section">
 
             <div class="cards">
@@ -722,6 +823,20 @@ button:hover,
                         <input type="text" name="mobile" placeholder="Mobile No">
                         <input type="text" name="password" placeholder="Password" required>
 
+                        <input type="text" name="epf_no" placeholder="EPF No">
+                        <input type="text" name="esic_no" placeholder="ESIC No">
+                        <input type="text" name="date_of_joining" placeholder="Date of Joining (04-May-2026)">
+
+                        <select name="status" class="employee-status-select" onchange="toggleExitDateField(this)">
+                            <option value="Active">Active</option>
+                            <option value="Resigned">Resigned</option>
+                            <option value="Left">Left</option>
+                        </select>
+
+                        <div class="date-exit-wrap hidden-exit-date">
+                            <input type="text" name="date_of_exit" placeholder="Date of Exit (04-May-2026)">
+                        </div>
+
                         <button class="submit" type="submit">Add Employee</button>
                     </form>
                 </div>
@@ -738,7 +853,7 @@ button:hover,
 
                         <button class="submit" type="submit">Upload Excel</button>
                     </form>
-                    <p class="hint"><b>Required columns:</b> Full Name | Employee ID | Mobile Number | Email ID | Password</p>
+                    <p class="hint"><b>Required columns:</b> Full Name | Employee ID | Mobile Number | Email ID | Password | EPF No | ESIC No | Date of Joining | Status | Date of Exit</p>
                 </div>
             </div>
 
@@ -801,6 +916,10 @@ button:hover,
                                 <th>Employee Name</th>
                                 <th>Email ID</th>
                                 <th>Mobile No</th>
+                                <th>EPF No</th>
+                                <th>ESIC No</th>
+                                <th>Date of Joining</th>
+                                <th>Date of Exit</th>
                                 <th>Status</th>
                                 <th>Action</th>
                             </tr>
@@ -811,15 +930,61 @@ button:hover,
                                 <td>{{ emp.name }}</td>
                                 <td>{{ emp.email }}</td>
                                 <td>{{ emp.mobile }}</td>
+                                <td>{{ emp.epf_no or "-" }}</td>
+                                <td>{{ emp.esic_no or "-" }}</td>
+                                <td>{{ emp.date_of_joining_display or "-" }}</td>
+                                <td>{{ emp.date_of_exit_display or "-" }}</td>
                                 <td>
-                                    {% if emp.status == "Inactive" or emp.status == "Blocked" %}
-                                        <span class="status-inactive">Inactive</span>
-                                    {% else %}
+                                    {% if emp.status == "Active" or not emp.status %}
                                         <span class="status-active">Active</span>
+                                    {% elif emp.status == "Resigned" %}
+                                        <span class="status-resigned">Resigned</span>
+                                    {% elif emp.status == "Left" %}
+                                        <span class="status-left">Left</span>
+                                    {% elif emp.status in ["Block", "Blocked", "Inactive"] %}
+                                        <span class="status-block">Block</span>
+                                    {% else %}
+                                        <span class="status-inactive">{{ emp.status }}</span>
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <a class="action-btn" href="#settings" onclick="showTab('settings')">View</a>
+                                    <button type="button" class="action-btn" onclick="toggleEditEmployee('editEmployee{{ loop.index }}')" style="border:none;cursor:pointer;">Edit</button>
+                                </td>
+                            </tr>
+                            <tr id="editEmployee{{ loop.index }}" class="edit-employee-row">
+                                <td colspan="10">
+                                    <div class="edit-employee-box">
+                                        <h3>Edit Employee Details</h3>
+                                        <form method="POST">
+                                            <input type="hidden" name="action" value="update_employee">
+                                            <input type="hidden" name="tab" value="employee_entry">
+                                            <input type="hidden" name="old_email" value="{{ emp.email }}">
+
+                                            <div class="edit-employee-grid">
+                                                <input type="text" name="employee_id" placeholder="Employee ID" value="{{ emp.employee_id or '' }}">
+                                                <input type="text" name="name" placeholder="Employee Name" value="{{ emp.name or '' }}" required>
+                                                <input type="email" name="email" placeholder="Email ID" value="{{ emp.email or '' }}" required>
+                                                <input type="text" name="mobile" placeholder="Mobile No" value="{{ emp.mobile or '' }}">
+                                                <input type="text" name="epf_no" placeholder="EPF No" value="{{ emp.epf_no or '' }}">
+                                                <input type="text" name="esic_no" placeholder="ESIC No" value="{{ emp.esic_no or '' }}">
+                                                <input type="text" name="date_of_joining" placeholder="Date of Joining (04-May-2026)" value="{{ emp.date_of_joining_display if emp.date_of_joining_display != '-' else '' }}">
+                                                <select name="status" class="employee-status-select" onchange="toggleExitDateField(this)">
+                                                    <option value="Active" {% if emp.status == "Active" or not emp.status %}selected{% endif %}>Active</option>
+                                                    <option value="Resigned" {% if emp.status == "Resigned" %}selected{% endif %}>Resigned</option>
+                                                    <option value="Left" {% if emp.status == "Left" %}selected{% endif %}>Left</option>
+                                                    <option value="Block" {% if emp.status in ["Inactive", "Blocked", "Block"] %}selected{% endif %}>Block</option>
+                                                </select>
+                                                <div class="date-exit-wrap {% if emp.status == "Active" or not emp.status %}hidden-exit-date{% endif %}">
+                                                    <input type="text" name="date_of_exit" placeholder="Date of Exit (04-May-2026)" value="{{ emp.date_of_exit_display if emp.date_of_exit_display != '-' else '' }}">
+                                                </div>
+                                            </div>
+
+                                            <div class="edit-actions">
+                                                <button class="submit success" type="submit">Save Changes</button>
+                                                <button class="submit danger" type="button" onclick="toggleEditEmployee('editEmployee{{ loop.index }}')">Cancel</button>
+                                            </div>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -977,6 +1142,36 @@ function confirmDelete(type) {
     return confirm('Are you sure?');
 }
 
+
+function toggleExitDateField(selectEl) {
+    if (!selectEl) return;
+    const form = selectEl.closest('form');
+    if (!form) return;
+    const wrap = form.querySelector('.date-exit-wrap');
+    if (!wrap) return;
+
+    const exitInput = wrap.querySelector('input[name="date_of_exit"]');
+    if (selectEl.value === 'Active') {
+        wrap.classList.add('hidden-exit-date');
+        if (exitInput) exitInput.value = '';
+    } else {
+        wrap.classList.remove('hidden-exit-date');
+    }
+}
+
+function setupExitDateFields() {
+    document.querySelectorAll('.employee-status-select').forEach(function (selectEl) {
+        toggleExitDateField(selectEl);
+    });
+}
+
+
+function toggleEditEmployee(rowId) {
+    const row = document.getElementById(rowId);
+    if (!row) return;
+    row.style.display = row.style.display === 'table-row' ? 'none' : 'table-row';
+}
+
 function setupEmployeeSearch() {
     const search = document.getElementById('employeeSearch');
     const table = document.getElementById('employeeTable');
@@ -1031,6 +1226,7 @@ function setupToast() {
 window.onload = function() {
     showTab("{{ active_tab }}");
     setupEmployeeSearch();
+    setupExitDateFields();
     setupSalaryEmployeeFilter();
     setupToast();
 }

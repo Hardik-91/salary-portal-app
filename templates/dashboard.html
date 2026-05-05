@@ -131,6 +131,15 @@
             color: #16a34a;
         }
 
+        .status-resigned,
+        .status-left,
+        .status-block,
+        .status-blocked,
+        .status-inactive {
+            color: #dc2626;
+            font-weight: 800;
+        }
+
         label {
             display: block;
             font-weight: 700;
@@ -1530,6 +1539,54 @@ button:hover {
     margin-bottom: 0 !important;
 }
 
+
+/* Top-right toast notification */
+.toast-message {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 9999;
+    min-width: 280px;
+    max-width: 420px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+    color: #166534;
+    border: 1px solid #86efac;
+    border-left: 6px solid #16a34a;
+    padding: 14px 18px;
+    border-radius: 16px;
+    font-weight: 900;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
+    animation: toastSlideIn 0.35s ease;
+}
+
+.toast-icon {
+    font-size: 18px;
+}
+
+@keyframes toastSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@media (max-width: 600px) {
+    .toast-message {
+        left: 14px;
+        right: 14px;
+        top: 14px;
+        min-width: auto;
+        max-width: none;
+    }
+}
+
 </style>
 
     <script>
@@ -1589,7 +1646,10 @@ button:hover {
 <div class="page">
 
     {% if message %}
-        <div class="alert">{{ message }}</div>
+        <div id="toastMessage" class="toast-message">
+            <span class="toast-icon">🔔</span>
+            <span>{{ message }}</span>
+        </div>
     {% endif %}
 
     <div class="employee-stats">
@@ -1643,8 +1703,31 @@ button:hover {
                 </div>
 
                 <div class="profile-row">
+                    <div class="profile-label">EPF No</div>
+                    <div class="profile-value">{{ employee.get('epf_no') or '-' }}</div>
+                </div>
+
+                <div class="profile-row">
+                    <div class="profile-label">ESIC No</div>
+                    <div class="profile-value">{{ employee.get('esic_no') or '-' }}</div>
+                </div>
+
+                <div class="profile-row">
+                    <div class="profile-label">Date of Joining</div>
+                    <div class="profile-value">{{ employee.get('date_of_joining_display') or '-' }}</div>
+                </div>
+
+                {% if employee.get('status') != 'Active' %}
+                <div class="profile-row">
+                    <div class="profile-label">Date of Exit</div>
+                    <div class="profile-value">{{ employee.get('date_of_exit_display') or '-' }}</div>
+                </div>
+                {% endif %}
+
+                <div class="profile-row">
                     <div class="profile-label">Account Status</div>
-                    <div class="profile-value status-active">Active</div>
+                    {% set emp_status = employee.get('status') or 'Active' %}
+                    <div class="profile-value {% if emp_status == 'Active' %}status-active{% elif emp_status in ['Resigned', 'Left', 'Block', 'Blocked', 'Inactive'] %}status-left{% else %}status-active{% endif %}">{{ emp_status }}</div>
                 </div>
             </div>
 
@@ -1733,6 +1816,45 @@ button:hover {
                             </div>
                         </div>
                     </div>
+
+                    <div class="latest-box request-certificate-box correction-request-box" style="margin-top:16px;">
+                        <div class="latest-icon">✍️</div>
+                        <div style="width:100%;">
+                            <h3>Raise Correction Request</h3>
+                            <p class="small-text" style="margin:0 0 10px;">If there is any change or correction in your details, please send a request to admin.</p>
+
+                            <form method="POST" action="/dashboard" class="request-form" style="display:block;">
+                                <input type="hidden" name="action" value="raise_correction_request">
+                                <textarea name="correction_message" rows="4" required placeholder="Example: Please update my EPF No / ESIC No / Date of Joining..." style="width:100%; padding:12px; border-radius:12px; border:1px solid #cbd5e1; font-size:14px; font-family:inherit; resize:vertical;"></textarea>
+                                <button type="submit" class="request-btn" style="margin-top:10px; width:100%;">SEND REQUEST</button>
+                            </form>
+
+                            <div class="request-list" style="margin-top:12px;">
+                                <h4>My Correction Requests</h4>
+                                {% if correction_requests %}
+                                    {% for req in correction_requests %}
+                                        <div class="request-item">
+                                            <div>
+                                                <strong>{{ req.message }}</strong>
+                                                {% if req.admin_reply %}<small>Admin reply: {{ req.admin_reply }}</small>{% endif %}
+                                                <small>{{ req.created_at }}</small>
+                                            </div>
+                                            {% if req.status == "Approved" %}
+                                                <span class="request-status completed">Approved</span>
+                                            {% elif req.status == "Rejected" %}
+                                                <span class="request-status pending" style="background:#fee2e2;color:#991b1b;">Rejected</span>
+                                            {% else %}
+                                                <span class="request-status pending">Pending</span>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <p class="no-request">No correction request sent yet.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -1978,6 +2100,21 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
     toggleSpecificPeriod();
+</script>
+
+
+<script>
+    setTimeout(function () {
+        var toast = document.getElementById("toastMessage");
+        if (toast) {
+            toast.style.transition = "opacity 0.5s ease, transform 0.5s ease";
+            toast.style.opacity = "0";
+            toast.style.transform = "translateX(30px)";
+            setTimeout(function () {
+                toast.style.display = "none";
+            }, 500);
+        }
+    }, 3000);
 </script>
 
 </body>
