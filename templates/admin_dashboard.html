@@ -587,6 +587,51 @@ button:hover,
             margin: 0;
         }
 
+
+        .compact-table input[type="checkbox"] {
+            width: auto !important;
+            margin: 0 !important;
+            transform: scale(1.1);
+        }
+
+
+
+/* Final admin safety + polish upgrade */
+.danger-zone-note {
+    background: #fff7ed;
+    color: #9a3412;
+    border: 1px solid #fed7aa;
+    border-left: 5px solid #f97316;
+    padding: 12px 14px;
+    border-radius: 14px;
+    font-weight: 800;
+    margin: 10px 0 14px;
+}
+.admin-inline-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+.admin-inline-actions .submit {
+    width: auto !important;
+}
+.admin-pill-badge {
+    display: inline-block;
+    border-radius: 999px;
+    padding: 4px 9px;
+    font-size: 11px;
+    font-weight: 900;
+}
+.badge-pending { background:#fef3c7; color:#92400e; }
+.badge-approved { background:#dcfce7; color:#166534; }
+.badge-rejected { background:#fee2e2; color:#991b1b; }
+button[disabled], .submit[disabled] {
+    opacity: .65 !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+}
+
 </style>
 </head>
 <body>
@@ -740,17 +785,17 @@ button:hover,
                             <td style="min-width:240px;">{{ req.message }}</td>
                             <td>
                                 {% if req.status == 'Approved' %}
-                                    <span class="status-active">Approved</span>
+                                    <span class="admin-pill-badge badge-approved">Approved</span>
                                 {% elif req.status == 'Rejected' %}
-                                    <span class="status-inactive">Rejected</span>
+                                    <span class="admin-pill-badge badge-rejected">Rejected</span>
                                 {% else %}
-                                    <span style="color:#f59e0b;font-weight:bold;">Pending</span>
+                                    <span class="admin-pill-badge badge-pending">Pending</span>
                                 {% endif %}
                             </td>
                             <td>{{ req.created_at }}</td>
                             <td style="min-width:260px;">
                                 {% if req.status == 'Pending' %}
-                                <form method="POST" style="margin:0;">
+                                <form method="POST" style="margin:0;" onsubmit="return confirmCorrectionAction(event, this);">
                                     <input type="hidden" name="tab" value="requests">
                                     <input type="hidden" name="request_id" value="{{ req.id }}">
                                     <input type="text" name="admin_reply" placeholder="Admin reply (optional)" style="margin:0 0 7px;">
@@ -858,13 +903,15 @@ button:hover,
             </div>
 
             <div id="emp_delete" class="employee-subsection">
-                <div class="card mini-form-card">
+                <div class="card">
                     <h3>Delete Employee</h3>
+                    <p class="hint"><b>Single delete:</b> select one employee and click Delete Employee.</p>
                     <form method="POST">
                         <input type="hidden" name="action" value="delete_employee">
                         <input type="hidden" name="tab" value="employee_entry">
+                        <input type="hidden" name="employee_subtab" value="emp_delete">
 
-                        <select name="employee_email" required>
+                        <select name="employee_email">
                             <option value="">Select Employee</option>
                             {% for emp in employees %}
                                 <option value="{{ emp.email }}">{{ emp.name }} ({{ emp.email }})</option>
@@ -872,7 +919,49 @@ button:hover,
                         </select>
 
                         <button class="submit danger" type="submit" onclick="return confirmDelete('employee')">
-                            Delete Employee
+                            🗑️ Delete Employee
+                        </button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3>Delete Multiple Employees</h3>
+                    <p class="hint">Tick employees below, then click <b>Delete Selected Employees</b>. This will delete employee records and their uploaded salary files/certificates.</p>
+<form method="POST" onsubmit="return confirmBulkDeleteEmployees(this);">
+                        <input type="hidden" name="action" value="delete_employee">
+                        <input type="hidden" name="tab" value="employee_entry">
+                        <input type="hidden" name="employee_subtab" value="emp_delete">
+
+                        <div class="table-wrap">
+                            <table class="compact-table admin-list">
+                                <thead>
+                                    <tr>
+                                        <th style="width:55px;"><input type="checkbox" id="selectAllDeleteEmployees" onclick="toggleDeleteEmployeeSelection(this)"></th>
+                                        <th>Employee ID</th>
+                                        <th>Employee Name</th>
+                                        <th>Email ID</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for emp in employees %}
+                                    <tr>
+                                        <td><input type="checkbox" class="delete-employee-checkbox" name="employee_emails" value="{{ emp.email }}"></td>
+                                        <td>{{ emp.employee_id or '-' }}</td>
+                                        <td>{{ emp.name }}</td>
+                                        <td>{{ emp.email }}</td>
+                                        <td>
+                                            {% set emp_status = emp.status or 'Active' %}
+                                            <span class="{% if emp_status == 'Active' %}status-active{% else %}status-inactive{% endif %}">{{ emp_status }}</span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <button class="submit danger" type="submit">
+                            🗑️ Delete Selected Employees
                         </button>
                     </form>
                 </div>
@@ -1126,7 +1215,18 @@ function showEmployeeSubTab(tabId, btn = null) {
     const selected = document.getElementById(tabId);
     if (selected) selected.classList.add('active');
 
-    if (btn) btn.classList.add('active');
+    if (btn) {
+        btn.classList.add('active');
+    } else {
+        const targetBtn = document.querySelector(`.toolbar-btn[onclick*="${tabId}"]`);
+        if (targetBtn) targetBtn.classList.add('active');
+    }
+}
+
+function toggleDeleteEmployeeSelection(source) {
+    document.querySelectorAll('.delete-employee-checkbox').forEach(function (checkbox) {
+        checkbox.checked = source.checked;
+    });
 }
 
 function confirmDelete(type) {
@@ -1213,6 +1313,51 @@ function setupSalaryEmployeeFilter() {
     applySalaryFilter();
 }
 
+
+function confirmBulkDeleteEmployees(form) {
+    const checked = form.querySelectorAll('.delete-employee-checkbox:checked');
+    if (!checked.length) {
+        alert('Please select at least one employee to delete.');
+        return false;
+    }
+    const ok = confirm('Delete ' + checked.length + ' selected employee(s) and their salary files/certificates? A backup will be created first. This action cannot be undone from dashboard.');
+    if (ok) scheduleDisableSubmitButtons(form);
+    return ok;
+}
+
+function confirmCorrectionAction(event, form) {
+    const clicked = event.submitter;
+    const action = clicked ? clicked.value : '';
+    let msg = 'Update this correction request?';
+    if (action === 'approve_correction_request') msg = 'Approve this correction request?';
+    if (action === 'reject_correction_request') msg = 'Reject this correction request?';
+    const ok = confirm(msg);
+    if (ok) scheduleDisableSubmitButtons(form);
+    return ok;
+}
+
+function scheduleDisableSubmitButtons(form) {
+    setTimeout(function () {
+        form.querySelectorAll('button[type="submit"], input[type="submit"]').forEach(function (btn) {
+            btn.disabled = true;
+            if (btn.tagName === 'BUTTON') btn.dataset.originalText = btn.innerText;
+            if (btn.tagName === 'BUTTON') btn.innerText = 'Processing...';
+        });
+    }, 80);
+}
+
+function setupDoubleSubmitProtection() {
+    document.querySelectorAll('form').forEach(function (form) {
+        if (form.dataset.safeSubmitAttached === 'yes') return;
+        form.dataset.safeSubmitAttached = 'yes';
+        form.addEventListener('submit', function () {
+            if (!form.hasAttribute('onsubmit')) {
+                scheduleDisableSubmitButtons(form);
+            }
+        });
+    });
+}
+
 function setupToast() {
     const toast = document.getElementById('toast');
     if (!toast) return;
@@ -1225,9 +1370,13 @@ function setupToast() {
 
 window.onload = function() {
     showTab("{{ active_tab }}");
+    if ("{{ active_tab }}" === "employee_entry") {
+        showEmployeeSubTab("{{ active_employee_subtab or 'emp_list' }}");
+    }
     setupEmployeeSearch();
     setupExitDateFields();
     setupSalaryEmployeeFilter();
+    setupDoubleSubmitProtection();
     setupToast();
 }
 </script>

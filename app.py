@@ -856,6 +856,7 @@ def admin_dashboard():
 
     message = request.args.get("msg", "")
     active_tab = request.form.get("tab") or request.args.get("tab") or "dashboard"
+    active_employee_subtab = request.form.get("employee_subtab") or request.args.get("employee_subtab") or "emp_list"
     if active_tab in ["employees", "excel"]:
         active_tab = "employee_entry"
     if active_tab in ["salary", "certificates"]:
@@ -1066,28 +1067,73 @@ def admin_dashboard():
                 message = "Please select employee and enter new password"
 
         elif action == "delete_employee":
-            email = request.form.get("employee_email", "").strip()
+            active_employee_subtab = "emp_delete"
+            selected_emails = [email.strip() for email in request.form.getlist("employee_emails") if email.strip()]
+            single_email = request.form.get("employee_email", "").strip()
 
-            if email:
-                slips = supabase.table("salary_slips").select("*").eq(
-                    "employee_email", email
-                ).execute().data or []
+            if single_email and single_email not in selected_emails:
+                selected_emails.append(single_email)
 
-                for slip in slips:
+            if selected_emails:
+                deleted_count = 0
+
+                # Safety upgrade: create a backup before any employee delete action.
+                try:
+                    create_backup_file()
+                except Exception:
+                    pass
+
+                for email in selected_emails:
+                    # Remove salary slip files from storage, then DB rows.
+                    slips = supabase.table("salary_slips").select("*").eq(
+                        "employee_email", email
+                    ).execute().data or []
+
+                    for slip in slips:
+                        try:
+                            supabase.storage.from_(SUPABASE_BUCKET).remove([slip["filename"]])
+                        except Exception:
+                            pass
+
+                    supabase.table("salary_slips").delete().eq(
+                        "employee_email", email
+                    ).execute()
+
+                    # Remove salary certificate files from storage, then DB rows.
                     try:
-                        supabase.storage.from_(SUPABASE_BUCKET).remove([slip["filename"]])
+                        certificates_to_delete = supabase.table("salary_certificates").select("*").eq(
+                            "employee_email", email
+                        ).execute().data or []
+
+                        for cert in certificates_to_delete:
+                            try:
+                                supabase.storage.from_(SUPABASE_BUCKET).remove([cert["filename"]])
+                            except Exception:
+                                pass
+
+                        supabase.table("salary_certificates").delete().eq("employee_email", email).execute()
                     except Exception:
                         pass
 
-                supabase.table("salary_slips").delete().eq(
-                    "employee_email", email
-                ).execute()
+                    # Remove request history linked to the employee.
+                    try:
+                        supabase.table("salary_statement_requests").delete().eq("employee_email", email).execute()
+                    except Exception:
+                        pass
+                    try:
+                        supabase.table("correction_requests").delete().eq("employee_email", email).execute()
+                    except Exception:
+                        pass
 
-                supabase.table("employees").delete().eq("email", email).execute()
+                    supabase.table("employees").delete().eq("email", email).execute()
+                    deleted_count += 1
 
-                message = "Employee deleted successfully"
+                if deleted_count == 1:
+                    message = "Employee deleted successfully. Backup created before delete."
+                else:
+                    message = f"{deleted_count} employees deleted successfully. Backup created before delete."
             else:
-                message = "Please select employee"
+                message = "Please select at least one employee"
 
         elif action == "upload_slip":
             employee_email = request.form.get("employee_email", "").strip()
@@ -1458,7 +1504,7 @@ def admin_dashboard():
         # Auto-refresh dashboard data after every admin action and show message as toast.
         # This avoids old stats/list data after add/delete/upload actions.
         if message:
-            return redirect(f"/admin/dashboard?tab={active_tab}&msg={quote(message)}")
+            return redirect(f"/admin/dashboard?tab={active_tab}&employee_subtab={active_employee_subtab}&msg={quote(message)}")
 
     employees = supabase.table("employees").select("*").execute().data or []
     slips = supabase.table("salary_slips").select("*").execute().data or []
@@ -1510,6 +1556,7 @@ def admin_dashboard():
         pending_correction_requests=pending_correction_requests,
         backup_info=latest_backup_info(),
         active_tab=active_tab,
+        active_employee_subtab=active_employee_subtab,
         company_settings=company_settings,
     )
 
