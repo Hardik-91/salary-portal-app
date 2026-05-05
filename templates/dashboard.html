@@ -1926,9 +1926,10 @@ button:hover {
 }
 
 
-/* === FIX: HIDE SPECIFIC PERIOD FIELDS UNTIL SPECIFIC PERIOD IS SELECTED === */
+
+/* === FINAL STRONG FIX: SPECIFIC PERIOD FIELDS HIDDEN BY DEFAULT === */
 #specific_period_box {
-    display: none;
+    display: none !important;
 }
 
 #specific_period_box.specific-period-active {
@@ -2229,7 +2230,7 @@ button:hover {
                         <option value="specific" {% if period_type == "specific" %}selected{% endif %}>Specific Period</option>
                     </select>
 
-                    <div class="period-row {% if period_type == "specific" %}specific-period-active{% endif %}" id="specific_period_box">
+                    <div class="period-row {% if period_type == 'specific' %}specific-period-active{% endif %}" id="specific_period_box">
                         <div>
                             <label>From Month</label>
                             <select name="from_month">
