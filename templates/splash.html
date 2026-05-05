@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>NRICH SKYOTEL</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            margin: 0;
+            background: #5b0b25;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        img {
+            width: 100%;
+            max-width: 430px;
+            height: auto;
+        }
+    </style>
+
+    <script>
+        setTimeout(function () {
+            window.location.href = "/";
+        }, 2000);
+    </script>
+</head>
+<body>
+    <img src="{{ url_for('static', filename='images/login_logo.png') }}" alt="NRICH SKYOTEL Logo">
+</body>
+</html>

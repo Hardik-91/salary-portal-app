@@ -1561,5 +1561,17 @@ def admin_dashboard():
     )
 
 
+from flask import request
+
+@app.route("/splash")
+def splash():
+    user_agent = request.headers.get('User-Agent', '').lower()
+
+    # Mobile detection
+    if "mobile" in user_agent or "android" in user_agent or "iphone" in user_agent:
+        return render_template("splash.html")  # show splash on mobile
+    else:
+        return redirect("/")  # skip splash on desktop
+
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5050, debug=False, use_reloader=False)

@@ -632,6 +632,248 @@ button[disabled], .submit[disabled] {
     transform: none !important;
 }
 
+
+
+/* ================= MOBILE VIEW FINAL FIXES ================= */
+@media (max-width: 768px) {
+    html, body {
+        width: 100% !important;
+        overflow-x: hidden !important;
+        font-size: 13px !important;
+    }
+
+    .layout {
+        display: block !important;
+        min-height: auto !important;
+    }
+
+    .sidebar {
+        position: relative !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        height: auto !important;
+        padding: 14px 12px !important;
+        box-shadow: 0 10px 28px rgba(91,11,37,0.18) !important;
+        border-right: none !important;
+        border-bottom: 1px solid rgba(212,175,55,0.22) !important;
+    }
+
+    .brand-logo-box {
+        margin-bottom: 12px !important;
+        padding-bottom: 12px !important;
+    }
+
+    .brand-logo {
+        width: 38px !important;
+        height: 38px !important;
+    }
+
+    .brand-title {
+        font-size: 16px !important;
+        line-height: 1.2 !important;
+        word-break: break-word !important;
+    }
+
+    .nav-btn,
+    .logout {
+        display: block !important;
+        width: 100% !important;
+        min-height: 42px !important;
+        margin: 6px 0 !important;
+        padding: 10px 12px !important;
+        text-align: center !important;
+        font-size: 13px !important;
+        transform: none !important;
+    }
+
+    .nav-btn:hover,
+    .nav-btn.active {
+        transform: none !important;
+    }
+
+    .main {
+        margin-left: 0 !important;
+        width: 100% !important;
+        padding: 12px !important;
+    }
+
+    .topbar {
+        padding: 14px !important;
+        border-radius: 16px !important;
+        margin-bottom: 12px !important;
+    }
+
+    .topbar-company {
+        align-items: flex-start !important;
+        gap: 10px !important;
+    }
+
+    .topbar-company img {
+        width: 40px !important;
+        height: 40px !important;
+        flex-shrink: 0 !important;
+    }
+
+    .topbar h1 {
+        font-size: 20px !important;
+        line-height: 1.2 !important;
+    }
+
+    .hint,
+    .topbar .hint {
+        font-size: 12px !important;
+        line-height: 1.35 !important;
+    }
+
+    .cards {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+    }
+
+    .stat,
+    .card {
+        border-radius: 16px !important;
+        padding: 14px !important;
+        margin-bottom: 12px !important;
+        transform: none !important;
+    }
+
+    .stat:hover,
+    .card:hover {
+        transform: none !important;
+    }
+
+    .stat h2 {
+        font-size: 24px !important;
+    }
+
+    .card h2,
+    .section-title h2 {
+        font-size: 20px !important;
+        line-height: 1.25 !important;
+    }
+
+    .card h3 {
+        font-size: 17px !important;
+    }
+
+    .grid,
+    .edit-employee-grid {
+        grid-template-columns: 1fr !important;
+        gap: 8px !important;
+    }
+
+    .employee-toolbar {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 8px !important;
+        padding: 10px !important;
+        border-radius: 16px !important;
+        overflow: visible !important;
+        background: transparent !important;
+        box-shadow: none !important;
+    }
+
+    .toolbar-btn {
+        border-radius: 14px !important;
+        min-height: 44px !important;
+        padding: 10px !important;
+        border: 1px solid rgba(212,175,55,0.30) !important;
+        border-bottom: 1px solid rgba(212,175,55,0.30) !important;
+        background: white !important;
+        font-size: 13px !important;
+    }
+
+    .toolbar-icon {
+        display: inline-block !important;
+        margin-right: 6px !important;
+        font-size: 17px !important;
+    }
+
+    .employee-list-head,
+    .filter-row,
+    .admin-inline-actions,
+    .edit-actions,
+    .backup-actions {
+        display: block !important;
+    }
+
+    .employee-list-head .search-box,
+    .filter-row .search-box,
+    .search-box {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin-top: 10px !important;
+    }
+
+    input,
+    select,
+    button,
+    button.submit,
+    .submit,
+    .action-btn,
+    .btn.view,
+    .btn.download {
+        width: 100% !important;
+        max-width: 100% !important;
+        font-size: 13px !important;
+        min-height: 42px !important;
+        margin-top: 8px !important;
+    }
+
+    .action-btn {
+        display: block !important;
+        text-align: center !important;
+        margin: 6px 0 !important;
+    }
+
+    .table-wrap {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        border-radius: 14px !important;
+    }
+
+    table.compact-table,
+    .compact-table.admin-list {
+        min-width: 820px !important;
+        font-size: 12px !important;
+    }
+
+    .compact-table th,
+    .compact-table td,
+    .compact-table.admin-list th,
+    .compact-table.admin-list td {
+        padding: 8px 7px !important;
+        font-size: 12px !important;
+        white-space: nowrap !important;
+    }
+
+    .compact-table td[style*="min-width"] {
+        white-space: normal !important;
+        min-width: 220px !important;
+    }
+
+    .edit-employee-row td {
+        white-space: normal !important;
+    }
+
+    .custom-toast {
+        top: 12px !important;
+        left: 12px !important;
+        right: 12px !important;
+        min-width: auto !important;
+        max-width: none !important;
+        width: auto !important;
+        text-align: center !important;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1100px) {
+    .sidebar { width: 220px !important; }
+    .main { margin-left: 220px !important; width: calc(100% - 220px) !important; padding: 18px !important; }
+    .employee-toolbar { grid-template-columns: repeat(3, 1fr) !important; }
+}
+
 </style>
 </head>
 <body>
