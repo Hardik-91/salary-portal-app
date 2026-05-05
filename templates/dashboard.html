@@ -1925,17 +1925,29 @@ button:hover {
     }
 }
 
+
+/* === FIX: HIDE SPECIFIC PERIOD FIELDS UNTIL SPECIFIC PERIOD IS SELECTED === */
+#specific_period_box {
+    display: none;
+}
+
+#specific_period_box.specific-period-active {
+    display: grid !important;
+}
+
 </style>
 
     <script>
         function toggleSpecificPeriod() {
-            const periodType = document.getElementById("period_type").value;
+            const periodType = document.getElementById("period_type");
             const specificBox = document.getElementById("specific_period_box");
 
-            if (periodType === "specific") {
-                specificBox.style.display = "grid";
+            if (!periodType || !specificBox) return;
+
+            if (periodType.value === "specific") {
+                specificBox.classList.add("specific-period-active");
             } else {
-                specificBox.style.display = "none";
+                specificBox.classList.remove("specific-period-active");
             }
         }
     </script>
@@ -2217,7 +2229,7 @@ button:hover {
                         <option value="specific" {% if period_type == "specific" %}selected{% endif %}>Specific Period</option>
                     </select>
 
-                    <div class="period-row" id="specific_period_box" {% if period_type != "specific" %}style="display:none;"{% endif %}>
+                    <div class="period-row {% if period_type == "specific" %}specific-period-active{% endif %}" id="specific_period_box">
                         <div>
                             <label>From Month</label>
                             <select name="from_month">
