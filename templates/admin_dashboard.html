@@ -874,6 +874,32 @@ button[disabled], .submit[disabled] {
     .employee-toolbar { grid-template-columns: repeat(3, 1fr) !important; }
 }
 
+
+/* === FIX: VIEW + DOWNLOAD BUTTON SAME LINE === */
+.action-group {
+    display: flex !important;
+    gap: 8px !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+}
+.action-group .action-btn,
+.action-group .btn,
+.action-group a {
+    width: auto !important;
+    display: inline-block !important;
+    white-space: nowrap !important;
+}
+
+/* Override mobile full-width buttons */
+@media (max-width: 768px) {
+    .action-group .action-btn,
+    .action-group .btn,
+    .action-group a {
+        width: auto !important;
+        margin-top: 0 !important;
+    }
+}
+
 </style>
 </head>
 <body>

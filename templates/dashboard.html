@@ -1836,6 +1836,95 @@ button:hover {
     }
 }
 
+
+/* === PREMIUM PDF BUTTONS + DOWNLOAD ALL SLIPS === */
+.action-cell {
+    display: flex !important;
+    gap: 10px !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+}
+
+.btn,
+.profile-btn,
+.download-all-slip-btn {
+    position: relative !important;
+    overflow: hidden !important;
+    width: auto !important;
+    white-space: nowrap !important;
+}
+
+.btn::before,
+.profile-btn::before,
+.download-all-slip-btn::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -80%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(120deg, transparent, rgba(255,255,255,0.35), transparent);
+    transform: skewX(-20deg);
+    transition: left .45s ease;
+}
+
+.btn:hover::before,
+.profile-btn:hover::before,
+.download-all-slip-btn:hover::before {
+    left: 130%;
+}
+
+.btn:hover,
+.profile-btn:hover,
+.download-all-slip-btn:hover {
+    transform: translateY(-2px) scale(1.02) !important;
+}
+
+.download-all-wrap {
+    display: flex;
+    justify-content: flex-end;
+    margin: 14px 0 0;
+}
+
+.download-all-slip-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    padding: 12px 18px !important;
+    border-radius: 999px !important;
+    font-weight: 900 !important;
+    text-decoration: none !important;
+    background: linear-gradient(135deg, #16a34a, #15803d) !important;
+    color: #ffffff !important;
+    box-shadow: 0 12px 26px rgba(22,163,74,0.22) !important;
+}
+
+.download-all-slip-btn:hover {
+    background: linear-gradient(135deg, var(--gold-light), var(--gold), var(--gold-dark)) !important;
+    color: #300614 !important;
+    box-shadow: 0 16px 32px rgba(212,175,55,0.28) !important;
+}
+
+@media (max-width: 768px) {
+    .action-cell {
+        flex-wrap: nowrap !important;
+    }
+
+    .action-cell .btn {
+        width: auto !important;
+        min-width: 118px !important;
+    }
+
+    .download-all-wrap {
+        justify-content: stretch !important;
+    }
+
+    .download-all-slip-btn {
+        width: 100% !important;
+    }
+}
+
 </style>
 
     <script>
@@ -2014,8 +2103,8 @@ button:hover {
                             {% if slips %}
                                 <p>{{ slips[0].month }} - {{ slips[0].display_name }}</p>
                                 <div class="profile-actions">
-                                    <a class="profile-btn view" href="/view/{{ slips[0].id }}" target="_blank">👁 View PDF</a>
-                                    <a class="profile-btn download" href="/download/{{ slips[0].id }}">📥 Download</a>
+                                    <a class="profile-btn view" href="/view/{{ slips[0].id }}" target="_blank">👁️ View PDF</a>
+                                    <a class="profile-btn download" href="/download/{{ slips[0].id }}">⬇️ Download</a>
                                 </div>
                             {% else %}
                                 <p>No salary slip uploaded yet.</p>
@@ -2192,6 +2281,15 @@ button:hover {
                 </form>
 
                 {% if slips %}
+                    <div class="download-all-wrap">
+                        <a class="download-all-slip-btn"
+                           href="/download_all_slips?period_type={{ period_type }}&from_month={{ from_month }}&from_year={{ from_year }}&to_month={{ to_month }}&to_year={{ to_year }}">
+                            ⬇️ Download All Slips
+                        </a>
+                    </div>
+                {% endif %}
+
+                {% if slips %}
                     <div class="table-wrap">
                         <table class="compact-table">
                             <thead>
@@ -2209,8 +2307,8 @@ button:hover {
                                         <td><strong>{{ slip.month }}</strong></td>
                                         <td>{{ slip.display_name }}</td>
                                         <td class="action-cell">
-                                            <a class="btn view" href="/view/{{ slip.id }}" target="_blank">👁 View PDF</a>
-                                            <a class="btn download" href="/download/{{ slip.id }}">📥 Download</a>
+                                            <a class="btn view" href="/view/{{ slip.id }}" target="_blank">👁️ View PDF</a>
+                                            <a class="btn download" href="/download/{{ slip.id }}">⬇️ Download</a>
                                         </td>
                                     </tr>
                                 {% endfor %}
@@ -2257,8 +2355,8 @@ button:hover {
                                     <td><strong>{{ certificate_fy }}</strong></td>
                                     <td>{{ salary_certificate.display_name }}</td>
                                     <td class="action-cell">
-                                        <a class="btn view" href="/view_certificate/{{ salary_certificate.id }}" target="_blank">👁 View PDF</a>
-                                        <a class="btn download" href="/download_certificate/{{ salary_certificate.id }}">📥 Download</a>
+                                        <a class="btn view" href="/view_certificate/{{ salary_certificate.id }}" target="_blank">👁️ View PDF</a>
+                                        <a class="btn download" href="/download_certificate/{{ salary_certificate.id }}">⬇️ Download</a>
                                     </td>
                                 </tr>
                             </tbody>
