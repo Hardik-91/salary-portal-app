@@ -1936,6 +1936,27 @@ button:hover {
     display: grid !important;
 }
 
+
+/* ===== Developer Footer ===== */
+.developer-footer {
+    margin-top: auto;
+    padding-top: 20px;
+    text-align: center;
+    color: rgba(255,255,255,0.75);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+}
+
+/* Mobile View */
+@media (max-width: 768px) {
+    .developer-footer {
+        padding-top: 12px;
+        font-size: 11px;
+    }
+}
+
+
 </style>
 
     <script>
@@ -1972,6 +1993,12 @@ button:hover {
             <a href="javascript:void(0)" onclick="showEmployeeSection('certificate', this)">🏅 Salary Certificate</a>
             <a href="/logout" class="logout" onclick="return confirm('Are you sure you want to logout?')">🚪 Logout</a>
         </div>
+
+    
+        <div class="developer-footer">
+            Developed by Hardik Patel
+        </div>
+
 
     </aside>
 
